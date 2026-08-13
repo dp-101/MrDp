@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-80cf7938-a722-4536-9a1f-d808b619fe64/styles.css">
+  <script src="_ds/nocturne-80cf7938-a722-4536-9a1f-d808b619fe64/_ds_bundle.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <script src="image-slot.js"></script>
+  <style>
+    body { margin: 0; background: #161826; color: #e9e9ed; font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; }
+    a { color: #d2cefd; text-decoration: none; }
+    a:hover { color: #f5f4ff; }
+    ::selection { background: #423a6a; }
+    :focus-visible { outline: 2px solid #9184d9; outline-offset: 2px; }
+    * { scrollbar-color: #3f424d transparent; scrollbar-width: thin; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f424d; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #595d6c; }
+  </style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="position: relative; min-height: 100vh; background: #161826; overflow-x: hidden;">
+
+  <div ref="{{ glowRef }}" style="position: fixed; top: 0; left: 0; width: 380px; height: 380px; margin: -190px 0 0 -190px; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0; transition: opacity .5s ease; background: radial-gradient(circle closest-side, rgba(196,186,255,.40), rgba(145,132,217,.16) 42%, transparent 70%);"></div>
+
+  <div style="position: fixed; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(120% 80% at 50% -10%, rgba(145,132,217,.10), transparent 60%);"></div>
+
+  <div style="position: relative; z-index: 2;">
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <main data-screen-label="Home" style="height: 100vh; overflow: hidden; display: grid; grid-template-rows: 1fr 1fr 1fr; align-items: center; width: 100%; margin: 0; padding: 0;">
+
+        <section style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <h1 style="margin: 0; font-family: 'Sora', 'Inter', system-ui, sans-serif; font-size: clamp(56px, 11vh, 116px); line-height: 1; font-weight: 700; letter-spacing: -.035em; color: #f5f4ff; text-shadow: 0 0 14px rgba(255,246,199,.35), 0 0 60px rgba(145,132,217,.80); position: relative; z-index: 40; padding: 0 26px; border-radius: 8px; transition: transform .7s cubic-bezier(.2,.7,.2,1), background .5s ease; background: {{ heroPlate }}; transform: {{ heroTransform }};">{{ ownerName }}</h1>
+        </section>
+
+        <section style="width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; align-content: center; border-top: 1px solid rgba(233,233,237,.10); border-bottom: 1px solid rgba(233,233,237,.10);">
+          <button onClick="{{ openWork }}" onMouseMove="{{ cardGlowMove }}" onMouseLeave="{{ cardGlowOut }}" style="position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8.4px; text-align: center; padding: 34px 40px; background: #1d1f2e; border: none; border-left: 1px solid rgba(233,233,237,.10); font-family: inherit; cursor: pointer; transition: background .4s ease, box-shadow .45s ease, transform .45s cubic-bezier(.2,.7,.2,1);" style-hover="background: #232532; box-shadow: 0 0 0 1px rgba(145,132,217,.45), 0 22px 60px rgba(0,0,0,.6); transform: scale(1.045); z-index: 5;">
+            <span data-glow="1" style="position: absolute; top: 0; left: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity .35s ease; background: radial-gradient(circle closest-side, rgba(214,206,255,.55), rgba(145,132,217,.22) 45%, transparent 72%);"></span>
+            <span style="position: relative; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #796cbf;">Built</span>
+            <span style="position: relative; font-size: 24px; font-weight: 500; color: #f5f4ff; text-shadow: 0 0 20px rgba(145,132,217,.45);">Work</span>
+            <span style="position: relative; font-size: 13px; line-height: 1.5; color: #9397ab;">Printers, boards, models, cuts.</span>
+          </button>
+          <button onClick="{{ openWriting }}" onMouseMove="{{ cardGlowMove }}" onMouseLeave="{{ cardGlowOut }}" style="position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8.4px; text-align: center; padding: 34px 40px; background: #1d1f2e; border: none; border-left: 1px solid rgba(233,233,237,.10); font-family: inherit; cursor: pointer; transition: background .4s ease, box-shadow .45s ease, transform .45s cubic-bezier(.2,.7,.2,1);" style-hover="background: #232532; box-shadow: 0 0 0 1px rgba(145,132,217,.45), 0 22px 60px rgba(0,0,0,.6); transform: scale(1.045); z-index: 5;">
+            <span data-glow="1" style="position: absolute; top: 0; left: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity .35s ease; background: radial-gradient(circle closest-side, rgba(214,206,255,.55), rgba(145,132,217,.22) 45%, transparent 72%);"></span>
+            <span style="position: relative; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #796cbf;">Thought</span>
+            <span style="position: relative; font-size: 24px; font-weight: 500; color: #f5f4ff; text-shadow: 0 0 20px rgba(145,132,217,.45);">Writing</span>
+            <span style="position: relative; font-size: 13px; line-height: 1.5; color: #9397ab;">Notes on getting better at things.</span>
+          </button>
+          <button onClick="{{ openGallery }}" onMouseMove="{{ cardGlowMove }}" onMouseLeave="{{ cardGlowOut }}" style="position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8.4px; text-align: center; padding: 34px 40px; background: #1d1f2e; border: none; border-left: 1px solid rgba(233,233,237,.10); font-family: inherit; cursor: pointer; transition: background .4s ease, box-shadow .45s ease, transform .45s cubic-bezier(.2,.7,.2,1);" style-hover="background: #232532; box-shadow: 0 0 0 1px rgba(145,132,217,.45), 0 22px 60px rgba(0,0,0,.6); transform: scale(1.045); z-index: 5;">
+            <span data-glow="1" style="position: absolute; top: 0; left: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity .35s ease; background: radial-gradient(circle closest-side, rgba(214,206,255,.55), rgba(145,132,217,.22) 45%, transparent 72%);"></span>
+            <span style="position: relative; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #796cbf;">Seen</span>
+            <span style="position: relative; font-size: 24px; font-weight: 500; color: #f5f4ff; text-shadow: 0 0 20px rgba(145,132,217,.45);">Gallery</span>
+            <span style="position: relative; font-size: 13px; line-height: 1.5; color: #9397ab;">A scrapbook, mostly shot at night.</span>
+          </button>
+        </section>
+
+        <section style="position: relative; z-index: 35; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22.4px; text-align: center;">
+          <p style="margin: 0; max-width: 660px; font-size: 16px; line-height: 1.65; color: #b2b6ca; text-wrap: pretty;">____________</p>
+          <div style="display: flex; align-items: center; gap: 11.2px;">
+            <a href="mailto:mrdp1002@gmail.com" aria-label="Email" title="Email" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; color: #b2b6ca; transition: color .35s ease, filter .35s ease, background .35s ease;" style-hover="color: #f5f4ff; background: rgba(145,132,217,.12); filter: drop-shadow(0 0 12px rgba(196,186,255,.85));">
+              <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path></svg>
+            </a>
+            <a href="https://instagram.com/mrdp_03" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; color: #b2b6ca; transition: color .35s ease, filter .35s ease, background .35s ease;" style-hover="color: #f5f4ff; background: rgba(145,132,217,.12); filter: drop-shadow(0 0 12px rgba(196,186,255,.85));">
+              <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160ZM176,24H80A56.06,56.06,0,0,0,24,80v96a56.06,56.06,0,0,0,56,56h96a56.06,56.06,0,0,0,56-56V80A56.06,56.06,0,0,0,176,24Zm40,152a40,40,0,0,1-40,40H80a40,40,0,0,1-40-40V80A40,40,0,0,1,80,40h96a40,40,0,0,1,40,40ZM192,76a12,12,0,1,1-12-12A12,12,0,0,1,192,76Z"></path></svg>
+            </a>
+            <a href="https://github.com/dp-101" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; color: #b2b6ca; transition: color .35s ease, filter .35s ease, background .35s ease;" style-hover="color: #f5f4ff; background: rgba(145,132,217,.12); filter: drop-shadow(0 0 12px rgba(196,186,255,.85));">
+              <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68Z"></path></svg>
+            </a>
+          </div>
+        </section>
+
+        <sc-if value="{{ expanding }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeCard }}" style="position: fixed; inset: 0; z-index: 29;"></div>
+          <div style="position: fixed; z-index: 30; display: flex; flex-direction: column; align-items: stretch; padding: 34px 40px 28px; border-radius: 14px; box-shadow: 0 0 0 1px rgba(145,132,217,.55), 0 0 90px rgba(145,132,217,.35), 0 30px 80px rgba(0,0,0,.6); overflow: hidden; transition: top .7s cubic-bezier(.2,.7,.2,1), left .7s cubic-bezier(.2,.7,.2,1), width .7s cubic-bezier(.2,.7,.2,1), height .7s cubic-bezier(.2,.7,.2,1), opacity .5s ease, background .7s ease; top: {{ panelTop }}; left: {{ panelLeft }}; width: {{ panelWidth }}; height: {{ panelHeight }}; opacity: {{ panelOpacity }}; background: {{ panelBg }};">
+            <div style="position: relative; flex: 0 0 auto;">
+              <div style="text-align: center; transform-origin: top center; transition: transform .25s ease, opacity .25s ease; transform: {{ headerTransform }}; opacity: {{ headerOpacity }};">
+                <p style="margin: 0 0 8.4px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #b5abfc;">{{ expandKicker }}</p>
+                <h2 style="margin: 0 0 5.6px; font-size: 38px; font-weight: 500; letter-spacing: -.02em; color: #f5f4ff; text-shadow: 0 0 30px rgba(145,132,217,.55);">{{ expandLabel }}</h2>
+                <p style="margin: 0; font-size: 14px; color: #9397ab;">{{ expandLine }}</p>
+              </div>
+              <button onClick="{{ closeCard }}" aria-label="Close" title="Close" style="position: absolute; top: 0; right: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: transparent; border: 1px solid rgba(233,233,237,.16); border-radius: 8px; color: #b2b6ca; cursor: pointer;" style-hover="border-color: rgba(145,132,217,.55); color: #f5f4ff; background: rgba(145,132,217,.12);">
+                <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+              </button>
+            </div>
+
+            <div onScroll="{{ panelScroll }}" style="flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; margin-top: 22.4px; padding-right: 8px;">
+              <sc-if value="{{ expandIsWork }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">3D printing</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">Ghost-tolerance jig set</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">Printed jigs that hold small electronics while soldering. A two-hand job became a one-hand job, and scrap dropped by half.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">Fusion 360 &middot; PETG<br>2026</p>
+                  </article>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">Electronics</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">Low-light room sensor</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">A battery board that logs light, temperature and humidity for a year on one cell. Most of the work was in what I removed.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">ESP32 &middot; KiCad<br>2025</p>
+                  </article>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">AI</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">Cutlist &mdash; a rough-cut assistant</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">Transcribes a shoot, finds the takes where I stop stumbling, and hands me a timeline that is 80% there.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">Whisper &middot; Python<br>2025</p>
+                  </article>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">Video</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">The one-light build series</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">Eight build videos shot with a single lamp and a black backdrop &mdash; clarity is a lighting decision, not a gear budget.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">Resolve &middot; 8 films<br>2024&ndash;25</p>
+                  </article>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">Economy</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">Slow indicators</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">A dataset of the boring numbers &mdash; freight, permits, repair spend &mdash; that move before the ones everyone quotes.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">Research &middot; Open data<br>Ongoing</p>
+                  </article>
+                  <article style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid rgba(233,233,237,.10);">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #796cbf;">Field notes</p>
+                    <div>
+                      <h3 style="margin: 0 0 5.6px; font-size: 20px; font-weight: 500; color: #f5f4ff;">Repair log, 140 entries</h3>
+                      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #9397ab;">Every fix I attempted for two years, with cost, time and outcome. The failures are the interesting column.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #75798c; text-align: right;">Notion &middot; Public<br>2023&ndash;25</p>
+                  </article>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ expandIsWriting }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <a href="#" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 28px; align-items: baseline; padding: 19px 8px; border-top: 1px solid rgba(233,233,237,.10); transition: background .35s ease;" style-hover="background: rgba(145,132,217,.07);">
+                    <span style="font-size: 12px; color: #75798c;">Jul 2026</span>
+                    <span>
+                      <span style="display: block; font-size: 20px; font-weight: 500; color: #f5f4ff; margin-bottom: 4px;">The cheapest improvement is usually a measurement</span>
+                      <span style="display: block; font-size: 14px; line-height: 1.55; color: #9397ab;">Why I stopped buying upgrades and started buying instruments.</span>
+                    </span>
+                    <span style="font-size: 12px; color: #75798c; text-align: right;">9 min</span>
+                  </a>
+                  <a href="#" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 28px; align-items: baseline; padding: 19px 8px; border-top: 1px solid rgba(233,233,237,.10); transition: background .35s ease;" style-hover="background: rgba(145,132,217,.07);">
+                    <span style="font-size: 12px; color: #75798c;">May 2026</span>
+                    <span>
+                      <span style="display: block; font-size: 20px; font-weight: 500; color: #f5f4ff; margin-bottom: 4px;">Small models are a manufacturing story</span>
+                      <span style="display: block; font-size: 14px; line-height: 1.55; color: #9397ab;">What running a model on a $6 board changes about who gets to build.</span>
+                    </span>
+                    <span style="font-size: 12px; color: #75798c; text-align: right;">14 min</span>
+                  </a>
+                  <a href="#" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 28px; align-items: baseline; padding: 19px 8px; border-top: 1px solid rgba(233,233,237,.10); transition: background .35s ease;" style-hover="background: rgba(145,132,217,.07);">
+                    <span style="font-size: 12px; color: #75798c;">Mar 2026</span>
+                    <span>
+                      <span style="display: block; font-size: 20px; font-weight: 500; color: #f5f4ff; margin-bottom: 4px;">Growth you can hear</span>
+                      <span style="display: block; font-size: 14px; line-height: 1.55; color: #9397ab;">Freight noise, repair shops and the indicators that arrive before the press release.</span>
+                    </span>
+                    <span style="font-size: 12px; color: #75798c; text-align: right;">11 min</span>
+                  </a>
+                  <a href="#" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 28px; align-items: baseline; padding: 19px 8px; border-top: 1px solid rgba(233,233,237,.10); transition: background .35s ease;" style-hover="background: rgba(145,132,217,.07);">
+                    <span style="font-size: 12px; color: #75798c;">Jan 2026</span>
+                    <span>
+                      <span style="display: block; font-size: 20px; font-weight: 500; color: #f5f4ff; margin-bottom: 4px;">Cut for the person who is tired</span>
+                      <span style="display: block; font-size: 14px; line-height: 1.55; color: #9397ab;">An editing rule I keep coming back to, borrowed from technical writing.</span>
+                    </span>
+                    <span style="font-size: 12px; color: #75798c; text-align: right;">6 min</span>
+                  </a>
+                  <a href="#" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 28px; align-items: baseline; padding: 19px 8px; border-top: 1px solid rgba(233,233,237,.10); transition: background .35s ease;" style-hover="background: rgba(145,132,217,.07);">
+                    <span style="font-size: 12px; color: #75798c;">Nov 2025</span>
+                    <span>
+                      <span style="display: block; font-size: 20px; font-weight: 500; color: #f5f4ff; margin-bottom: 4px;">Tolerance is a relationship, not a number</span>
+                      <span style="display: block; font-size: 14px; line-height: 1.55; color: #9397ab;">Two years of printed parts, and the one habit that fixed most of my fits.</span>
+                    </span>
+                    <span style="font-size: 12px; color: #75798c; text-align: right;">8 min</span>
+                  </a>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ expandIsGallery }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; grid-template-columns: repeat({{ galleryColumns }}, minmax(0, 1fr)); gap: 16.8px;">
+                  <figure style="margin: 0; grid-row: span 2;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-1" shape="rect" placeholder="Tall shot &mdash; a print on the bed"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">First layer, 3 a.m.</figcaption>
+                  </figure>
+                  <figure style="margin: 0;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-2" shape="rect" placeholder="A board, close up"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">Rev C, still warm</figcaption>
+                  </figure>
+                  <figure style="margin: 0;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-3" shape="rect" placeholder="A frame from a video"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">One lamp, one subject</figcaption>
+                  </figure>
+                  <figure style="margin: 0;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-4" shape="rect" placeholder="Sketch or whiteboard"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">The version that failed</figcaption>
+                  </figure>
+                  <figure style="margin: 0;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-5" shape="rect" placeholder="Tools, parts, mess"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">Everything within reach</figcaption>
+                  </figure>
+                  <figure style="margin: 0; grid-column: span 2;">
+                    <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; mix-blend-mode: lighten;">
+                      <image-slot id="mrdp-panel-6" shape="rect" placeholder="Wide shot &mdash; the whole bench"></image-slot>
+                    </div>
+                    <figcaption style="margin: 8.4px 0 0; font-size: 12px; color: #75798c;">Where all of it happens</figcaption>
+                  </figure>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </main>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;ownerName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;MrDp&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;cursorGlow&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Light&quot;},&quot;galleryColumns&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:2,&quot;max&quot;:4,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+class Component extends DCLogic {
+  state = { expand: null, phase: 'from', headerT: 0 };
+
+  constructor(props) {
+    super(props);
+    this.rootRef = React.createRef();
+    this.glowRef = React.createRef();
+    this._onMove = this._onMove.bind(this);
+    this._onLeave = this._onLeave.bind(this);
+  }
+
+  componentDidMount() {
+    if (this.props.cursorGlow ?? true) {
+      window.addEventListener('pointermove', this._onMove, { passive: true });
+      window.addEventListener('pointerleave', this._onLeave);
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('pointermove', this._onMove);
+    window.removeEventListener('pointerleave', this._onLeave);
+    if (this._closeTimer) clearTimeout(this._closeTimer);
+  }
+
+  _onMove(e) {
+    const g = this.glowRef.current;
+    if (!g) return;
+    if (this._raf) cancelAnimationFrame(this._raf);
+    this._raf = requestAnimationFrame(() => {
+      g.style.opacity = '1';
+      g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+    });
+  }
+
+  _onLeave() {
+    const g = this.glowRef.current;
+    if (g) g.style.opacity = '0';
+  }
+
+  _cardGlowMove(e) {
+    const g = e.currentTarget.querySelector('[data-glow]');
+    if (!g) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    g.style.opacity = '1';
+    g.style.transform = 'translate3d(' + (e.clientX - r.left) + 'px,' + (e.clientY - r.top) + 'px,0)';
+  }
+
+  _cardGlowOut(e) {
+    const g = e.currentTarget.querySelector('[data-glow]');
+    if (g) g.style.opacity = '0';
+  }
+
+  // Open/close are declarative: the panel mounts at the card's rect (phase
+  // 'from'), then one frame later state flips to 'to' and CSS interpolates.
+  _open(key, kicker, label, line) {
+    return (e) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      if (this._closeTimer) clearTimeout(this._closeTimer);
+      this.setState({
+        expand: { key, kicker, label, line, rect: { top: r.top, left: r.left, width: r.width, height: r.height } },
+        phase: 'from',
+        headerT: 0
+      });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (this.state.expand) this.setState({ phase: 'to' });
+      }));
+    };
+  }
+
+  _closeCard() {
+    this.setState({ phase: 'from', headerT: 0 });
+    if (this._closeTimer) clearTimeout(this._closeTimer);
+    this._closeTimer = setTimeout(() => this.setState({ expand: null }), 720);
+  }
+
+  _panelScroll(e) {
+    const t = Math.min(1, e.currentTarget.scrollTop / 140);
+    if (Math.abs(t - this.state.headerT) > 0.02) this.setState({ headerT: t });
+  }
+
+  renderVals() {
+    const ex = this.state.expand;
+    const open = !!ex && this.state.phase === 'to';
+    const r = ex ? ex.rect : { top: 0, left: 0, width: 0, height: 0 };
+    const t = this.state.headerT;
+    return {
+      ownerName: this.props.ownerName ?? 'MrDp',
+      galleryColumns: this.props.galleryColumns ?? 3,
+      rootRef: this.rootRef,
+      glowRef: this.glowRef,
+      isHome: true,
+      expanding: !!ex,
+      expandKicker: ex ? ex.kicker : '',
+      expandLabel: ex ? ex.label : '',
+      expandLine: ex ? ex.line : '',
+      expandIsWork: ex ? ex.key === 'work' : false,
+      expandIsWriting: ex ? ex.key === 'writing' : false,
+      expandIsGallery: ex ? ex.key === 'gallery' : false,
+      panelTop: open ? '9vh' : r.top + 'px',
+      panelLeft: open ? '4vw' : r.left + 'px',
+      panelWidth: open ? '92vw' : r.width + 'px',
+      panelHeight: open ? '64vh' : r.height + 'px',
+      panelOpacity: open ? 1 : 0,
+      panelBg: open ? '#2f3248' : '#232532',
+      headerTransform: t > 0.02 ? 'translateY(' + (-16 * t) + 'px) scale(' + (1 - 0.32 * t) + ')' : 'none',
+      headerOpacity: 1 - 0.3 * t,
+      heroTransform: open ? 'translateY(-7.7vh) scale(.26)' : 'none',
+      heroPlate: open ? 'linear-gradient(to bottom, transparent calc(50% - 22px), #2f3248 calc(50% - 22px), #2f3248 calc(50% + 22px), transparent calc(50% + 22px))' : 'transparent',
+      closeCard: () => this._closeCard(),
+      panelScroll: (e) => this._panelScroll(e),
+      cardGlowMove: (e) => this._cardGlowMove(e),
+      cardGlowOut: (e) => this._cardGlowOut(e),
+      openWork: this._open('work', 'Built', 'Work', 'Printers, boards, models, cuts.'),
+      openWriting: this._open('writing', 'Thought', 'Writing', 'Notes on getting better at things.'),
+      openGallery: this._open('gallery', 'Seen', 'Gallery', 'A scrapbook, mostly shot at night.')
+    };
+  }
+}
+</script>
+</body>
+</html>
