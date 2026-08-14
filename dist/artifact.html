@@ -323,11 +323,15 @@ textarea.input { min-height: 90px; resize: vertical; }
     --rule:        rgba(233, 233, 237, .10);
     --font-display: "Sora", "Inter", system-ui, sans-serif;
 
-    /* Open geometry of the expanding panel — remapped per breakpoint. */
+    /* Open geometry of the expanding panel — remapped per breakpoint.
+       The title sits in its own strip above the panel, so --titlebar-top
+       and --panel-top move together. */
+    --titlebar-top: 3vh;
     --panel-top: 9vh;
     --panel-left: 4vw;
     --panel-w: 92vw;
-    --panel-h: 64vh;
+    --panel-h: 79vh;
+    --socials-bottom: 3.5vh;
   }
 
   html { scrollbar-color: var(--color-neutral-800) transparent; scrollbar-width: thin; }
@@ -371,13 +375,12 @@ textarea.input { min-height: 90px; resize: vertical; }
     text-shadow: 0 0 14px rgba(255,246,199,.35), 0 0 60px rgba(145,132,217,.80);
     position: relative; z-index: 40; padding: 0 26px; border-radius: var(--radius-md);
     background: transparent;
-    transition: transform .7s cubic-bezier(.2,.7,.2,1), background .5s ease;
+    transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .5s ease;
   }
+  /* The open section's title takes the top strip, so the wordmark clears
+     out of it rather than shrinking into the same slot. */
   .page[data-open="true"] .hero-name {
-    transform: translateY(-7.7vh) scale(.26);
-    background: linear-gradient(to bottom,
-      transparent calc(50% - 22px), var(--panel) calc(50% - 22px),
-      var(--panel) calc(50% + 22px), transparent calc(50% + 22px));
+    transform: scale(.94); opacity: 0; pointer-events: none;
   }
 
   .rooms {
@@ -422,8 +425,17 @@ textarea.input { min-height: 90px; resize: vertical; }
   .bio {
     margin: 0; max-width: 660px; font-size: 16px; line-height: 1.65;
     color: var(--color-neutral-400); text-wrap: pretty;
+    transition: opacity .35s ease;
   }
+  /* An open panel is the whole page — the bio steps out, and the socials
+     drop to the bottom band to clear the taller panel. */
+  .page[data-open="true"] .bio { opacity: 0; visibility: hidden; }
   .socials { display: flex; align-items: center; gap: var(--space-4); }
+  .page[data-open="true"] .socials {
+    position: fixed; left: 0; right: 0; bottom: var(--socials-bottom);
+    justify-content: center; animation: settle .45s ease both;
+  }
+  @keyframes settle { from { opacity: 0; } to { opacity: 1; } }
   .socials a {
     display: flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; border-radius: var(--radius-md); color: var(--color-neutral-400);
@@ -438,7 +450,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   .scrim { position: fixed; inset: 0; z-index: 29; }
   .panel {
     position: fixed; z-index: 30; display: flex; flex-direction: column; align-items: stretch;
-    padding: 34px 40px 28px; border-radius: var(--radius-lg); overflow: hidden;
+    padding: 28px 40px; border-radius: var(--radius-lg); overflow: hidden;
     background: var(--card-hover); opacity: 0;
     box-shadow: 0 0 0 1px rgba(145,132,217,.55), 0 0 90px rgba(145,132,217,.35), 0 30px 80px rgba(0,0,0,.6);
     transition: top .7s cubic-bezier(.2,.7,.2,1), left .7s cubic-bezier(.2,.7,.2,1),
@@ -452,22 +464,27 @@ textarea.input { min-height: 90px; resize: vertical; }
   }
   .panel[hidden] { display: none; }
 
-  .panel-head { position: relative; flex: 0 0 auto; }
-  .panel-head-inner {
-    text-align: center; transform-origin: top center;
-    transform: translateY(calc(-16px * var(--t, 0))) scale(calc(1 - .32 * var(--t, 0)));
-    opacity: calc(1 - .3 * var(--t, 0));
-    transition: transform .25s ease, opacity .25s ease;
+  /* The title strip — the open section's identity, above the panel and
+     outside its scrolling area. */
+  .panel-titlebar {
+    position: fixed; top: var(--titlebar-top); left: 0; right: 0; z-index: 31;
+    text-align: center; pointer-events: none;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .45s ease .1s, transform .45s cubic-bezier(.2,.7,.2,1) .1s;
   }
+  .panel-titlebar[data-state="to"] { opacity: 1; transform: none; }
+  .panel-titlebar[hidden] { display: none; }
   .panel-kicker {
     margin: 0 0 var(--space-3); font-size: 11px; letter-spacing: .18em;
     text-transform: uppercase; color: var(--color-accent-400);
   }
   .panel-title {
-    margin: 0 0 var(--space-2); font-size: 38px; font-weight: 500; letter-spacing: -.02em;
+    margin: 0; font-size: 38px; font-weight: 500; letter-spacing: -.02em;
     color: var(--color-accent-100); text-shadow: 0 0 30px rgba(145,132,217,.55);
   }
-  .panel-line { margin: 0; font-size: 14px; color: var(--color-neutral-500); }
+  /* With the title lifted out, the panel's own head carries only the close
+     control — the body starts directly beneath it. */
+  .panel-head { position: relative; flex: 0 0 auto; height: 40px; }
   .panel-close {
     position: absolute; top: 0; right: 0;
     display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
@@ -479,7 +496,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   }
   .panel-body {
     flex: 1 1 auto; overflow-y: auto; overflow-x: hidden;
-    margin-top: var(--space-8); padding-right: 8px;
+    margin-top: var(--space-4); padding-right: 8px;
   }
   .panel-body > [hidden] { display: none; }
 
@@ -531,15 +548,19 @@ textarea.input { min-height: 90px; resize: vertical; }
 
   /* ─── Narrow viewports ───────────────────────────────────────────────── */
   @media (max-width: 860px) {
-    :root { --panel-top: 6vh; --panel-left: 3vw; --panel-w: 94vw; --panel-h: 78dvh; }
+    :root {
+      --titlebar-top: 2vh; --panel-top: 10vh; --panel-left: 3vw;
+      --panel-w: 94vw; --panel-h: 80dvh; --socials-bottom: 3vh;
+    }
     .home { grid-template-rows: auto auto auto; row-gap: var(--space-8); padding-bottom: var(--space-8); }
     .hero { padding-top: 12vh; }
     .rooms { grid-template-columns: 1fr; }
     .room { border-left: none; border-top: 1px solid var(--rule); padding: 26px 24px; }
     .room:first-child { border-top: none; }
     .room:hover { transform: none; }
-    .panel { padding: 24px 20px 20px; }
+    .panel { padding: 20px; }
     .panel-title { font-size: 28px; }
+    .panel-head { height: 36px; }
     .panel-close { width: 36px; height: 36px; }
     .work-row, .note { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
     .work-meta, .note-read { text-align: left; }
@@ -580,21 +601,21 @@ textarea.input { min-height: 90px; resize: vertical; }
 
       <section class="rooms">
         <button class="room" type="button" aria-expanded="false" aria-controls="panel"
-                data-room="work" data-kicker="Built" data-label="Work" data-line="Printers, boards, models, cuts.">
+                data-room="work" data-kicker="Built" data-label="Work">
           <span class="room-glow" aria-hidden="true"></span>
           <span class="room-kicker">Built</span>
           <span class="room-name">Work</span>
           <span class="room-line">Printers, boards, models, cuts.</span>
         </button>
         <button class="room" type="button" aria-expanded="false" aria-controls="panel"
-                data-room="writing" data-kicker="Thought" data-label="Writing" data-line="Notes on getting better at things.">
+                data-room="writing" data-kicker="Thought" data-label="Writing">
           <span class="room-glow" aria-hidden="true"></span>
           <span class="room-kicker">Thought</span>
           <span class="room-name">Writing</span>
           <span class="room-line">Notes on getting better at things.</span>
         </button>
         <button class="room" type="button" aria-expanded="false" aria-controls="panel"
-                data-room="gallery" data-kicker="Seen" data-label="Gallery" data-line="A scrapbook, mostly shot at night.">
+                data-room="gallery" data-kicker="Seen" data-label="Gallery">
           <span class="room-glow" aria-hidden="true"></span>
           <span class="room-kicker">Seen</span>
           <span class="room-name">Gallery</span>
@@ -622,13 +643,13 @@ textarea.input { min-height: 90px; resize: vertical; }
 
   <div class="scrim" id="scrim" hidden></div>
 
+  <div class="panel-titlebar" id="panelTitlebar" hidden>
+    <p class="panel-kicker" id="panelKicker"></p>
+    <h2 class="panel-title" id="panelTitle"></h2>
+  </div>
+
   <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
     <div class="panel-head">
-      <div class="panel-head-inner" id="panelHead">
-        <p class="panel-kicker" id="panelKicker"></p>
-        <h2 class="panel-title" id="panelTitle"></h2>
-        <p class="panel-line" id="panelLine"></p>
-      </div>
       <button class="panel-close" id="panelClose" type="button" aria-label="Close" title="Close">
         <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
       </button>
@@ -753,7 +774,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   var panel  = document.getElementById('panel');
   var scrim  = document.getElementById('scrim');
   var body   = document.getElementById('panelBody');
-  var head   = document.getElementById('panelHead');
+  var bar    = document.getElementById('panelTitlebar');
   var glow   = document.getElementById('cursorGlow');
   var rooms  = Array.prototype.slice.call(document.querySelectorAll('.room'));
   var sections = Array.prototype.slice.call(body.querySelectorAll('[data-panel]'));
@@ -809,14 +830,14 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     document.getElementById('panelKicker').textContent = room.dataset.kicker;
     document.getElementById('panelTitle').textContent  = room.dataset.label;
-    document.getElementById('panelLine').textContent   = room.dataset.line;
     sections.forEach(function (s) { s.hidden = s.dataset.panel !== room.dataset.room; });
 
     body.scrollTop = 0;
-    head.style.setProperty('--t', 0);
     place(fromRect);
     panel.dataset.state = 'from';
+    bar.dataset.state = 'from';
     panel.hidden = false;
+    bar.hidden = false;
     scrim.hidden = false;
     room.setAttribute('aria-expanded', 'true');
 
@@ -824,6 +845,7 @@ textarea.input { min-height: 90px; resize: vertical; }
       requestAnimationFrame(function () {
         panel.style.top = panel.style.left = panel.style.width = panel.style.height = '';
         panel.dataset.state = 'to';
+        bar.dataset.state = 'to';
         page.dataset.open = 'true';
         document.getElementById('panelClose').focus({ preventScroll: true });
       });
@@ -834,12 +856,16 @@ textarea.input { min-height: 90px; resize: vertical; }
     if (panel.hidden) return;
     if (fromRect) place(fromRect);
     panel.dataset.state = 'from';
+    bar.dataset.state = 'from';
     page.dataset.open = 'false';
     scrim.hidden = true;
     rooms.forEach(function (r) { r.setAttribute('aria-expanded', 'false'); });
     if (opener) { opener.focus({ preventScroll: true }); opener = null; }
     if (closeTimer) clearTimeout(closeTimer);
-    closeTimer = setTimeout(function () { panel.hidden = true; }, reduced.matches ? 0 : 720);
+    closeTimer = setTimeout(function () {
+      panel.hidden = true;
+      bar.hidden = true;
+    }, reduced.matches ? 0 : 720);
   }
 
   document.getElementById('panelClose').addEventListener('click', close);
@@ -847,11 +873,6 @@ textarea.input { min-height: 90px; resize: vertical; }
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); close(); }
   });
-
-  /* ── The panel header shrinks as its body scrolls ───────────────────── */
-  body.addEventListener('scroll', function () {
-    head.style.setProperty('--t', Math.min(1, body.scrollTop / 140));
-  }, { passive: true });
 
   /* ── An open panel is pinned to a card's rect; a resize invalidates it ─ */
   window.addEventListener('resize', function () {
