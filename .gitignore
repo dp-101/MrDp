@@ -1,0 +1,10 @@
+# Design-tool export — the working copy lives in src/, this is the raw drop
+Light in Dark Portfolio/
+Light in Dark Portfolio.zip
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
