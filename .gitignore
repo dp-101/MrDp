@@ -2,6 +2,10 @@
 Light in Dark Portfolio/
 Light in Dark Portfolio.zip
 
+# Photo originals — the drop folder tools/build-gallery.py reads from.
+# Only the web copies it writes into assets/photos/ are committed.
+gal/
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

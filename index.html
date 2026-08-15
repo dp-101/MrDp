@@ -232,28 +232,117 @@
   .note-line { display: block; font-size: 14px; line-height: 1.55; color: var(--color-neutral-500); }
   .note-read { font-size: 12px; color: var(--color-neutral-600); text-align: right; }
 
-  /* ─── Gallery ────────────────────────────────────────────────────────── */
-  .gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); }
-  .frame {
-    position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden;
-    background:
-      radial-gradient(120% 90% at 50% 0%, rgba(145,132,217,.16), transparent 62%),
-      linear-gradient(180deg, var(--card-hover), var(--card));
-    box-shadow: inset 0 0 0 1px rgba(145,132,217,.16);
+  /* ─── Gallery ──────────────────────────────────────────────────────────
+     Two orders over the same photographs: when each was taken, and where
+     its dominant colour falls on the wheel. Either can be reversed. */
+  .gal-bar {
+    position: sticky; top: 0; z-index: 3;
+    display: flex; align-items: center; gap: var(--space-4);
+    padding-bottom: var(--space-4); margin-bottom: var(--space-2);
+    background: linear-gradient(var(--panel) 78%, transparent);
+  }
+  .seg { display: flex; border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+  .seg button {
+    padding: 7px 15px; font: inherit; font-size: 13px; cursor: pointer;
+    background: transparent; border: 0; color: var(--color-neutral-400);
+    transition: background .3s ease, color .3s ease;
+  }
+  .seg button:hover { background: rgba(145,132,217,.10); color: var(--color-accent-100); }
+  .seg button[aria-selected="true"] { background: rgba(145,132,217,.20); color: var(--color-accent-100); }
+
+  .gal-reverse {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 6px 12px 6px 9px; font: inherit; font-size: 12px; cursor: pointer;
+    background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-md);
+    color: var(--color-neutral-400);
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .gal-reverse:hover {
+    border-color: rgba(145,132,217,.55); color: var(--color-accent-100); background: rgba(145,132,217,.12);
+  }
+  .gal-reverse svg { transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+  .gal-reverse[data-dir="desc"] svg { transform: rotate(180deg); }
+  .gal-count { margin-left: auto; font-size: 12px; color: var(--color-neutral-600); }
+
+  /* ─── The colour wheel ───────────────────────────────────────────────── */
+  .gal-wheel { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-2) 0 var(--space-6); }
+  .gal-wheel[hidden] { display: none; }
+  .wheel { position: relative; width: 132px; height: 132px; flex: 0 0 auto; }
+  /* The ring itself: the rainbow, then white, grey and black closing the
+     circle back into red — every neighbour blended into the next. */
+  .wheel-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from -90deg,
+      #e0503a 0deg, #e08b3a 32.7deg, #e0c93a 65.5deg, #6fbf50 98.2deg,
+      #45c0b8 130.9deg, #4a86e0 163.6deg, #8a6fd8 196.4deg, #d46fae 229.1deg,
+      #f2f2f5 261.8deg, #8b8f9e 294.5deg, #17171c 327.3deg, #e0503a 360deg);
+    -webkit-mask: radial-gradient(closest-side, transparent 58%, #000 59%);
+    mask: radial-gradient(closest-side, transparent 58%, #000 59%);
+    transition: opacity .35s ease;
+  }
+  .wheel[data-picked] .wheel-ring { opacity: .32; }
+  .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wheel path { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 1.5; }
+  .wheel path:hover { fill: rgba(245,244,255,.14); }
+  .wheel path:focus-visible { outline: none; stroke: var(--color-accent-100); }
+  .wheel path[data-on="1"] { fill: rgba(245,244,255,.10); stroke: var(--color-accent-100); }
+  .wheel-centre {
+    position: absolute; inset: 26%; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1px; background: transparent; border: 0; color: var(--color-neutral-400);
+    font: inherit; cursor: pointer; text-align: center; line-height: 1.15;
+  }
+  .wheel-centre:hover { color: var(--color-accent-100); }
+  .wheel-centre b { font-size: 13px; font-weight: 500; color: var(--color-accent-100); text-transform: capitalize; }
+  .wheel-centre span { font-size: 10px; }
+  .wheel-note { font-size: 13px; line-height: 1.6; color: var(--color-neutral-500); max-width: 340px; }
+  .wheel-note b { display: block; font-weight: 500; color: var(--color-accent-100); margin-bottom: var(--space-1); }
+
+  /* ─── The grid ───────────────────────────────────────────────────────── */
+  .gal-grid { position: relative; width: 100%; }
+  .shot {
+    position: absolute; top: 0; left: 0; margin: 0; overflow: hidden;
+    border-radius: var(--radius-md); background: var(--card);
+    box-shadow: inset 0 0 0 1px rgba(145,132,217,.12);
+    cursor: pointer; padding: 0; border: 0;
+    transition: top .55s cubic-bezier(.2,.7,.2,1), left .55s cubic-bezier(.2,.7,.2,1),
+                opacity .35s ease, box-shadow .3s ease;
+  }
+  .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease, opacity .5s ease; }
+  .shot:hover { box-shadow: 0 0 0 1px rgba(145,132,217,.6), 0 16px 40px rgba(0,0,0,.55); z-index: 2; }
+  .shot:hover img { transform: scale(1.04); }
+  .shot[data-out] { opacity: 0; pointer-events: none; }
+  .gal-empty { padding: var(--space-8) 0; color: var(--color-neutral-500); font-size: 14px; }
+
+  /* ─── Full view ──────────────────────────────────────────────────────── */
+  .viewer {
+    position: fixed; inset: 0; z-index: 50;
     display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 11, 18, .93); opacity: 0; transition: opacity .3s ease;
   }
-  .frame::after {
-    content: ""; width: 34px; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-accent-600), transparent);
+  .viewer[data-on="1"] { opacity: 1; }
+  .viewer[hidden] { display: none; }
+  .viewer img {
+    max-width: 92vw; max-height: 82dvh; border-radius: var(--radius-md);
+    box-shadow: 0 30px 90px rgba(0,0,0,.7);
   }
-  .frame img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: lighten; }
-  .shot-1 .frame { aspect-ratio: 3 / 4; }
-  .shot-2 .frame, .shot-3 .frame { aspect-ratio: 4 / 3; }
-  .shot-4 .frame, .shot-5 .frame { aspect-ratio: 1 / 1; }
-  .shot-6 .frame { aspect-ratio: 16 / 9; }
-  .shot-1 { grid-row: span 2; }
-  .shot-6 { grid-column: span 2; }
-  .gallery figcaption { margin: var(--space-3) 0 0; font-size: 12px; color: var(--color-neutral-600); }
+  .viewer-meta {
+    position: absolute; left: 0; right: 0; bottom: 4dvh; text-align: center;
+    font-size: 12px; color: var(--color-neutral-500);
+  }
+  .viewer-meta b { color: var(--color-neutral-300); font-weight: 400; }
+  .viewer button {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; border-radius: var(--radius-md);
+    background: rgba(35,37,50,.7); border: 1px solid var(--rule);
+    color: var(--color-neutral-300); cursor: pointer;
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .viewer button:hover {
+    background: rgba(145,132,217,.20); border-color: rgba(145,132,217,.55); color: var(--color-accent-100);
+  }
+  .viewer .v-prev { left: 2vw; } .viewer .v-next { right: 2vw; }
+  .viewer .v-close { top: 3dvh; right: 2vw; }
 
   /* ─── Narrow viewports ───────────────────────────────────────────────── */
   @media (max-width: 860px) {
@@ -274,12 +363,15 @@
     .work-row, .note { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
     .work-meta, .note-read { text-align: left; }
     .note-date { order: -1; }
-    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .shot-1 { grid-row: span 1; }
-  }
-  @media (max-width: 520px) {
-    .gallery { grid-template-columns: minmax(0, 1fr); }
-    .shot-6 { grid-column: span 1; }
+
+    .gal-bar { flex-wrap: wrap; gap: var(--space-2); }
+    .gal-count { order: 3; width: 100%; margin-left: 0; }
+    .gal-wheel { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+    .wheel { width: 108px; height: 108px; }
+    .wheel-note { max-width: none; font-size: 12px; }
+    .viewer img { max-width: 94vw; max-height: 72dvh; }
+    .viewer button { width: 40px; height: 40px; }
+    .viewer .v-prev { left: 3vw; } .viewer .v-next { right: 3vw; }
   }
 
   /* ─── Motion ─────────────────────────────────────────────────────────── */
@@ -461,17 +553,50 @@
       </section>
 
       <section data-panel="gallery" hidden>
-        <div class="gallery">
-          <figure class="shot-1"><div class="frame"></div><figcaption>First layer, 3 a.m.</figcaption></figure>
-          <figure class="shot-2"><div class="frame"></div><figcaption>Rev C, still warm</figcaption></figure>
-          <figure class="shot-3"><div class="frame"></div><figcaption>One lamp, one subject</figcaption></figure>
-          <figure class="shot-4"><div class="frame"></div><figcaption>The version that failed</figcaption></figure>
-          <figure class="shot-5"><div class="frame"></div><figcaption>Everything within reach</figcaption></figure>
-          <figure class="shot-6"><div class="frame"></div><figcaption>Where all of it happens</figcaption></figure>
+        <div class="gal-bar">
+          <div class="seg" role="tablist" aria-label="Arrange photographs by">
+            <button type="button" role="tab" data-mode="time" aria-selected="true">Timeline</button>
+            <button type="button" role="tab" data-mode="colour" aria-selected="false">Colour</button>
+          </div>
+          <button class="gal-reverse" id="galReverse" type="button" data-dir="asc">
+            <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,197.66a8,8,0,0,1-11.32,0L136,163.31V224a8,8,0,0,1-16,0V163.31L85.66,197.66a8,8,0,0,1-11.32-11.32l48-48a8,8,0,0,1,11.32,0l48,48A8,8,0,0,1,181.66,197.66Zm-96-139.32L120,92.69V32a8,8,0,0,1,16,0V92.69l34.34-34.35a8,8,0,0,1,11.32,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48A8,8,0,0,1,85.66,58.34Z"></path></svg>
+            <span id="galDir">Oldest first</span>
+          </button>
+          <span class="gal-count" id="galCount"></span>
         </div>
+
+        <div class="gal-wheel" id="galWheel" hidden>
+          <div class="wheel" id="wheel">
+            <div class="wheel-ring" aria-hidden="true"></div>
+            <svg viewBox="0 0 100 100" id="wheelHit" role="group" aria-label="Filter by colour"></svg>
+            <button class="wheel-centre" id="wheelCentre" type="button"></button>
+          </div>
+          <p class="wheel-note">
+            <b>Sorted around the wheel</b>
+            Each photograph sits where its dominant colour falls — the rainbow
+            first, then white, grey and black closing the circle back into red.
+            Pick a wedge to see only that colour.
+          </p>
+        </div>
+
+        <div class="gal-grid" id="galGrid"></div>
       </section>
 
     </div>
+  </div>
+
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Photograph" hidden>
+    <img id="viewerImg" alt="">
+    <p class="viewer-meta" id="viewerMeta"></p>
+    <button class="v-prev" type="button" aria-label="Previous photograph">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path></svg>
+    </button>
+    <button class="v-next" type="button" aria-label="Next photograph">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg>
+    </button>
+    <button class="v-close" type="button" aria-label="Close">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+    </button>
   </div>
 </div>
 
@@ -541,6 +666,8 @@
     document.getElementById('panelTitle').textContent  = room.dataset.label;
     sections.forEach(function (s) { s.hidden = s.dataset.panel !== room.dataset.room; });
 
+    if (room.dataset.room === 'gallery') document.dispatchEvent(new CustomEvent('gallery:show'));
+
     body.scrollTop = 0;
     place(fromRect);
     panel.dataset.state = 'from';
@@ -580,13 +707,286 @@
   document.getElementById('panelClose').addEventListener('click', close);
   scrim.addEventListener('click', close);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); close(); }
+    // The photo viewer sits above the panel, so it gets Escape first.
+    if (e.key !== 'Escape' || panel.hidden) return;
+    if (!document.getElementById('viewer').hidden) return;
+    e.preventDefault();
+    close();
   });
 
   /* ── An open panel is pinned to a card's rect; a resize invalidates it ─ */
   window.addEventListener('resize', function () {
     if (!panel.hidden && opener) fromRect = opener.getBoundingClientRect();
   });
+})();
+
+/* ════════════════════════════════════════════════════════════════════════
+   The gallery — two orders over the same photographs, either reversible.
+
+   Timeline reads the capture date out of each photo's EXIF; Colour reads
+   the dominant colour and places it on the wheel. Both are computed ahead
+   of time by tools/build-gallery.py and shipped in assets/photos/index.json,
+   so adding photographs is a re-run of that script, not an edit here.
+   ════════════════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+
+  var grid = document.getElementById('galGrid');
+  if (!grid) return;
+
+  var WHEEL = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue',
+               'violet', 'pink', 'white', 'grey', 'black'];
+  var SWATCH = {
+    red: '#e0503a', orange: '#e08b3a', yellow: '#e0c93a', green: '#6fbf50',
+    cyan: '#45c0b8', blue: '#4a86e0', violet: '#8a6fd8', pink: '#d46fae',
+    white: '#f2f2f5', grey: '#8b8f9e', black: '#17171c'
+  };
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                'August', 'September', 'October', 'November', 'December'];
+  var GAP = 14;
+
+  var segButtons = Array.prototype.slice.call(document.querySelectorAll('.seg [data-mode]'));
+  var reverseBtn = document.getElementById('galReverse');
+  var dirLabel   = document.getElementById('galDir');
+  var countLabel = document.getElementById('galCount');
+  var wheelBox   = document.getElementById('galWheel');
+  var wheelEl    = document.getElementById('wheel');
+  var wheelHit   = document.getElementById('wheelHit');
+  var wheelMid   = document.getElementById('wheelCentre');
+  var viewer     = document.getElementById('viewer');
+  var viewerImg  = document.getElementById('viewerImg');
+  var viewerMeta = document.getElementById('viewerMeta');
+
+  var photos = [];    // every photograph, in the order the index lists them
+  var shown  = [];    // the current filtered, sorted view
+  var mode   = 'time';
+  var dir    = { time: 'asc', colour: 'asc' };
+  var picked = null;  // a colour name, or null for all
+  var lastWidth = 0;
+  var at = -1;        // index into `shown` while the viewer is open
+
+  function thumbSrc(p) { return p.thumb || 'assets/photos/thumb/' + p.file; }
+  function fullSrc(p)  { return p.thumb || 'assets/photos/view/' + p.file; }
+
+  function prettyDate(iso) {
+    if (!iso) return '';
+    var d = iso.slice(0, 10).split('-');
+    return Number(d[2]) + ' ' + MONTHS[Number(d[1]) - 1] + ' ' + d[0];
+  }
+
+  /* ── Order ───────────────────────────────────────────────────────────── */
+  function apply() {
+    shown = photos.filter(function (p) { return !picked || p.colour === picked; });
+    shown.sort(mode === 'time'
+      ? function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
+      : function (a, b) { return a.wheel - b.wheel; });
+    if (dir[mode] === 'desc') shown.reverse();
+
+    photos.forEach(function (p) { p.el.setAttribute('data-out', ''); });
+    shown.forEach(function (p) { p.el.removeAttribute('data-out'); });
+
+    countLabel.textContent = shown.length === photos.length
+      ? photos.length + ' photographs'
+      : shown.length + ' of ' + photos.length;
+    reverseBtn.dataset.dir = dir[mode];
+    dirLabel.textContent = mode === 'time'
+      ? (dir[mode] === 'asc' ? 'Oldest first' : 'Newest first')
+      : (dir[mode] === 'asc' ? 'Red to black' : 'Black to red');
+    layout();
+  }
+
+  /* ── Masonry, in reading order: each photograph goes to whichever column
+        is currently shortest, so the sequence still runs left to right. ── */
+  function layout() {
+    var width = grid.clientWidth;
+    if (!width) return;
+    lastWidth = width;
+
+    var cols = Math.max(1, Math.min(5, Math.round(width / 265)));
+    var colW = (width - GAP * (cols - 1)) / cols;
+    var heights = [];
+    for (var i = 0; i < cols; i++) heights.push(0);
+
+    shown.forEach(function (p) {
+      var h = Math.round(colW * p.h / p.w);
+      var c = heights.indexOf(Math.min.apply(null, heights));
+      p.el.style.width  = colW + 'px';
+      p.el.style.height = h + 'px';
+      p.el.style.left   = Math.round(c * (colW + GAP)) + 'px';
+      p.el.style.top    = Math.round(heights[c]) + 'px';
+      heights[c] += h + GAP;
+    });
+
+    grid.style.height = shown.length
+      ? (Math.max.apply(null, heights) - GAP) + 'px' : '0px';
+  }
+
+  /* ── The wheel ───────────────────────────────────────────────────────── */
+  function wedgePath(i, n) {
+    var r0 = 29, r1 = 50, out = [];
+    var a0 = (i * 360 / n - 90) * Math.PI / 180;
+    var a1 = ((i + 1) * 360 / n - 90) * Math.PI / 180;
+    function pt(r, a) {
+      return (50 + r * Math.cos(a)).toFixed(2) + ' ' + (50 + r * Math.sin(a)).toFixed(2);
+    }
+    out.push('M' + pt(r1, a0), 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + pt(r1, a1));
+    out.push('L' + pt(r0, a1), 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + pt(r0, a0), 'Z');
+    return out.join(' ');
+  }
+
+  function buildWheel() {
+    var counts = {};
+    photos.forEach(function (p) { counts[p.colour] = (counts[p.colour] || 0) + 1; });
+
+    WHEEL.forEach(function (name, i) {
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      var n = counts[name] || 0;
+      path.setAttribute('d', wedgePath(i, WHEEL.length));
+      path.setAttribute('data-colour', name);
+      path.setAttribute('role', 'button');
+      path.setAttribute('tabindex', '0');
+      path.setAttribute('aria-label', name + ', ' + n + ' photograph' + (n === 1 ? '' : 's'));
+      if (!n) path.style.cursor = 'default';
+      path.addEventListener('click', function () { if (n) pick(name); });
+      path.addEventListener('keydown', function (e) {
+        if (n && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(name); }
+      });
+      wheelHit.appendChild(path);
+    });
+    paintWheel();
+  }
+
+  function paintWheel() {
+    if (picked) wheelEl.setAttribute('data-picked', picked);
+    else wheelEl.removeAttribute('data-picked');
+
+    Array.prototype.forEach.call(wheelHit.children, function (path) {
+      var on = path.getAttribute('data-colour') === picked;
+      path.setAttribute('data-on', on ? '1' : '0');
+      path.style.fill = on ? SWATCH[picked] : '';
+      path.style.fillOpacity = on ? '1' : '';
+    });
+
+    wheelMid.innerHTML = picked
+      ? '<b>' + picked + '</b><span>tap to clear</span>'
+      : '<b>All</b><span>' + photos.length + ' photos</span>';
+  }
+
+  function pick(name) {
+    picked = (picked === name) ? null : name;
+    paintWheel();
+    apply();
+  }
+
+  /* ── Full view ───────────────────────────────────────────────────────── */
+  function openViewer(p) {
+    at = shown.indexOf(p);
+    show();
+    viewer.hidden = false;
+    requestAnimationFrame(function () { viewer.dataset.on = '1'; });
+    viewer.querySelector('.v-close').focus({ preventScroll: true });
+  }
+
+  function show() {
+    var p = shown[at];
+    if (!p) return;
+    viewerImg.src = fullSrc(p);
+    viewerImg.alt = 'Photograph taken ' + prettyDate(p.date);
+    viewerMeta.innerHTML = '<b>' + prettyDate(p.date) + '</b> &nbsp;·&nbsp; ' +
+      p.colour + ' &nbsp;·&nbsp; ' + (at + 1) + ' of ' + shown.length;
+  }
+
+  function step(by) {
+    if (!shown.length) return;
+    at = (at + by + shown.length) % shown.length;
+    show();
+  }
+
+  function closeViewer() {
+    viewer.dataset.on = '0';
+    setTimeout(function () { viewer.hidden = true; viewerImg.removeAttribute('src'); }, 300);
+  }
+
+  viewer.querySelector('.v-prev').addEventListener('click', function () { step(-1); });
+  viewer.querySelector('.v-next').addEventListener('click', function () { step(1); });
+  viewer.querySelector('.v-close').addEventListener('click', closeViewer);
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) closeViewer(); });
+  document.addEventListener('keydown', function (e) {
+    if (viewer.hidden) return;
+    if (e.key === 'Escape')     { e.preventDefault(); closeViewer(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  });
+
+  /* ── Controls ────────────────────────────────────────────────────────── */
+  segButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      mode = btn.dataset.mode;
+      segButtons.forEach(function (b) {
+        b.setAttribute('aria-selected', String(b === btn));
+      });
+      wheelBox.hidden = mode !== 'colour';
+      apply();
+    });
+  });
+
+  reverseBtn.addEventListener('click', function () {
+    dir[mode] = dir[mode] === 'asc' ? 'desc' : 'asc';
+    apply();
+  });
+
+  wheelMid.addEventListener('click', function () {
+    if (picked) { picked = null; paintWheel(); apply(); }
+  });
+
+  /* ── Boot ────────────────────────────────────────────────────────────── */
+  function build(data) {
+    photos = data.filter(function (p) { return p.date; });
+    photos.forEach(function (p) {
+      var el = document.createElement('button');
+      el.className = 'shot';
+      el.type = 'button';
+      el.setAttribute('aria-label', 'Open photograph from ' + prettyDate(p.date));
+      var img = new Image();
+      img.src = thumbSrc(p);
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      el.appendChild(img);
+      el.addEventListener('click', function () { openViewer(p); });
+      grid.appendChild(el);
+      p.el = el;
+    });
+
+    buildWheel();
+    apply();
+
+    // The panel animates open, so the grid's width lands in stages; watch it
+    // rather than guessing when it has settled.
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () {
+        if (grid.clientWidth && grid.clientWidth !== lastWidth) layout();
+      }).observe(grid);
+    }
+    window.addEventListener('resize', layout);
+    // The panel takes ~720ms to reach full width. Lay out across that span
+    // as well, so the grid is right even where ResizeObserver is missing.
+    document.addEventListener('gallery:show', function () {
+      [0, 60, 400, 780].forEach(function (t) { setTimeout(layout, t); });
+    });
+  }
+
+  if (window.__PHOTOS__) {
+    build(window.__PHOTOS__);
+  } else {
+    fetch('assets/photos/index.json')
+      .then(function (r) { return r.json(); })
+      .then(build)
+      .catch(function () {
+        grid.innerHTML = '<p class="gal-empty">The photographs could not be loaded. ' +
+          'Serve the site over http rather than opening the file directly.</p>';
+      });
+  }
 })();
 </script>
 </body>
