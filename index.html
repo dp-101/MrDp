@@ -59,9 +59,28 @@
   .cursor-glow {
     position: fixed; top: 0; left: 0; width: 380px; height: 380px;
     margin: -190px 0 0 -190px; border-radius: 50%;
-    pointer-events: none; z-index: 0; opacity: 0; transition: opacity .5s ease;
+    pointer-events: none; z-index: 0; opacity: 0; transition: opacity .4s ease;
     background: radial-gradient(circle closest-side, rgba(196,186,255,.40), rgba(145,132,217,.16) 42%, transparent 70%);
   }
+  .page[data-torch="off"] .cursor-glow { opacity: 0 !important; }
+
+  /* The torch — turns the cursor glow on and off. */
+  .torch {
+    position: fixed; top: 22px; right: 26px; z-index: 36;
+    display: flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: var(--radius-md);
+    background: transparent; border: 1px solid var(--rule);
+    color: var(--color-neutral-600); cursor: pointer;
+    transition: color .35s ease, background .35s ease, border-color .35s ease,
+                filter .35s ease, opacity .5s ease;
+  }
+  .torch:hover { color: var(--color-accent-100); border-color: rgba(145,132,217,.55); background: rgba(145,132,217,.12); }
+  .torch[aria-pressed="true"] {
+    color: var(--color-accent-200); border-color: rgba(145,132,217,.40);
+    filter: drop-shadow(0 0 10px rgba(196,186,255,.75));
+  }
+  .page[data-open="true"] .torch { opacity: 0; pointer-events: none; }
+  @media (pointer: coarse) { .torch { display: none; } }
   .top-bloom {
     position: fixed; inset: 0; pointer-events: none; z-index: 1;
     background: radial-gradient(120% 80% at 50% -10%, rgba(145,132,217,.10), transparent 60%);
@@ -161,10 +180,13 @@
     position: fixed; z-index: 30; display: flex; flex-direction: column; align-items: stretch;
     padding: 28px 40px; border-radius: var(--radius-lg); overflow: hidden;
     background: var(--card-hover); opacity: 0;
-    box-shadow: 0 0 0 1px rgba(145,132,217,.55), 0 0 90px rgba(145,132,217,.35), 0 30px 80px rgba(0,0,0,.6);
+    /* The edge takes the accent, or the colour picked on the gallery wheel. */
+    --edge: rgba(145, 132, 217, .55);
+    --edge-glow: rgba(145, 132, 217, .35);
+    box-shadow: 0 0 0 1px var(--edge), 0 0 90px var(--edge-glow), 0 30px 80px rgba(0,0,0,.6);
     transition: top .7s cubic-bezier(.2,.7,.2,1), left .7s cubic-bezier(.2,.7,.2,1),
                 width .7s cubic-bezier(.2,.7,.2,1), height .7s cubic-bezier(.2,.7,.2,1),
-                opacity .5s ease, background .7s ease;
+                opacity .5s ease, background .7s ease, box-shadow .55s ease;
   }
   .panel[data-state="to"] {
     top: var(--panel-top); left: var(--panel-left);
@@ -174,12 +196,15 @@
   .panel[hidden] { display: none; }
 
   /* The title strip — the open section's identity, above the panel and
-     outside its scrolling area. */
+     outside its scrolling area. It does not appear there: it flies up out of
+     the card, on the same curve and duration as the card's own expansion, so
+     the two read as one movement. The flight itself is set from script,
+     which measures where the card's label starts. */
   .panel-titlebar {
     position: fixed; top: var(--titlebar-top); left: 0; right: 0; z-index: 31;
-    text-align: center; pointer-events: none;
-    opacity: 0; transform: translateY(8px);
-    transition: opacity .45s ease .1s, transform .45s cubic-bezier(.2,.7,.2,1) .1s;
+    text-align: center; pointer-events: none; opacity: 0;
+    transform-origin: top center;
+    transition: opacity .45s ease, transform .7s cubic-bezier(.2,.7,.2,1);
   }
   .panel-titlebar[data-state="to"] { opacity: 1; transform: none; }
   .panel-titlebar[hidden] { display: none; }
@@ -191,6 +216,9 @@
     margin: 0; font-size: 38px; font-weight: 500; letter-spacing: -.02em;
     color: var(--color-accent-100); text-shadow: 0 0 30px rgba(145,132,217,.55);
   }
+  /* The heading is a full-width block; the span is the text itself, and the
+     flight is measured off that. */
+  .panel-title span { display: inline-block; }
   /* With the title lifted out, the panel's own head carries only the close
      control — the body starts directly beneath it. */
   .panel-head { position: relative; flex: 0 0 auto; height: 40px; }
@@ -235,12 +263,16 @@
   /* ─── Gallery ──────────────────────────────────────────────────────────
      Two orders over the same photographs: when each was taken, and where
      its dominant colour falls on the wheel. Either can be reversed. */
+  /* Three tracks, so the controls centre on the panel rather than on
+     whatever space is left beside the count. */
   .gal-bar {
     position: sticky; top: 0; z-index: 3;
-    display: flex; align-items: center; gap: var(--space-4);
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
     padding-bottom: var(--space-4); margin-bottom: var(--space-2);
     background: linear-gradient(var(--panel) 78%, transparent);
   }
+  .gal-bar::before { content: ""; }
+  .gal-controls { display: flex; align-items: center; gap: var(--space-4); }
   .seg { display: flex; border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
   .seg button {
     padding: 7px 15px; font: inherit; font-size: 13px; cursor: pointer;
@@ -262,20 +294,29 @@
   }
   .gal-reverse svg { transition: transform .4s cubic-bezier(.2,.7,.2,1); }
   .gal-reverse[data-dir="desc"] svg { transform: rotate(180deg); }
-  .gal-count { margin-left: auto; font-size: 12px; color: var(--color-neutral-600); }
+  .gal-count { justify-self: end; font-size: 12px; color: var(--color-neutral-600); }
 
   /* ─── The colour wheel ───────────────────────────────────────────────── */
-  .gal-wheel { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-2) 0 var(--space-6); }
+  /* Stacked and centred, so the wheel sits on the panel's axis rather than
+     being pushed off it by the note beside it. */
+  .gal-wheel {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    gap: var(--space-4); padding: var(--space-2) 0 var(--space-6);
+  }
   .gal-wheel[hidden] { display: none; }
   .wheel { position: relative; width: 132px; height: 132px; flex: 0 0 auto; }
   /* The ring itself: the rainbow, then white, grey and black closing the
-     circle back into red — every neighbour blended into the next. */
+     circle back into red — every neighbour blended into the next.
+     Each colour peaks at the CENTRE of its wedge, half a segment (16.36deg)
+     past the wedge's leading edge, so the band and the selectable wedge
+     over it line up. The stop at 0/360 is the black-to-red midpoint. */
   .wheel-ring {
     position: absolute; inset: 0; border-radius: 50%;
-    background: conic-gradient(from -90deg,
-      #e0503a 0deg, #e08b3a 32.7deg, #e0c93a 65.5deg, #6fbf50 98.2deg,
-      #45c0b8 130.9deg, #4a86e0 163.6deg, #8a6fd8 196.4deg, #d46fae 229.1deg,
-      #f2f2f5 261.8deg, #8b8f9e 294.5deg, #17171c 327.3deg, #e0503a 360deg);
+    background: conic-gradient(from 0deg,
+      #7b332b 0deg, #e0503a 16.36deg, #e08b3a 49.09deg, #e0c93a 81.82deg,
+      #6fbf50 114.55deg, #45c0b8 147.27deg, #4a86e0 180deg, #8a6fd8 212.73deg,
+      #d46fae 245.45deg, #f2f2f5 278.18deg, #8b8f9e 310.91deg, #17171c 343.64deg,
+      #7b332b 360deg);
     -webkit-mask: radial-gradient(closest-side, transparent 58%, #000 59%);
     mask: radial-gradient(closest-side, transparent 58%, #000 59%);
     transition: opacity .35s ease;
@@ -295,7 +336,7 @@
   .wheel-centre:hover { color: var(--color-accent-100); }
   .wheel-centre b { font-size: 13px; font-weight: 500; color: var(--color-accent-100); text-transform: capitalize; }
   .wheel-centre span { font-size: 10px; }
-  .wheel-note { font-size: 13px; line-height: 1.6; color: var(--color-neutral-500); max-width: 340px; }
+  .wheel-note { font-size: 13px; line-height: 1.6; color: var(--color-neutral-500); max-width: 560px; margin: 0; }
   .wheel-note b { display: block; font-weight: 500; color: var(--color-accent-100); margin-bottom: var(--space-1); }
 
   /* ─── The grid ───────────────────────────────────────────────────────── */
@@ -364,9 +405,11 @@
     .work-meta, .note-read { text-align: left; }
     .note-date { order: -1; }
 
-    .gal-bar { flex-wrap: wrap; gap: var(--space-2); }
-    .gal-count { order: 3; width: 100%; margin-left: 0; }
-    .gal-wheel { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+    .gal-bar { grid-template-columns: 1fr; justify-items: center; row-gap: var(--space-2); }
+    .gal-bar::before { display: none; }
+    .gal-controls { flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+    .gal-count { justify-self: center; }
+    .gal-wheel { flex-direction: column; align-items: center; text-align: center; gap: var(--space-4); }
     .wheel { width: 108px; height: 108px; }
     .wheel-note { max-width: none; font-size: 12px; }
     .viewer img { max-width: 94vw; max-height: 72dvh; }
@@ -392,6 +435,15 @@
 
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
   <div class="top-bloom" aria-hidden="true"></div>
+
+  <button class="torch" id="torch" type="button" aria-pressed="true" title="Torch" aria-label="Turn the torch off">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
+      <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
+      <path d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
+    </svg>
+  </button>
 
   <div class="layer">
     <main class="home">
@@ -446,7 +498,7 @@
 
   <div class="panel-titlebar" id="panelTitlebar" hidden>
     <p class="panel-kicker" id="panelKicker"></p>
-    <h2 class="panel-title" id="panelTitle"></h2>
+    <h2 class="panel-title"><span id="panelTitle"></span></h2>
   </div>
 
   <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
@@ -554,6 +606,7 @@
 
       <section data-panel="gallery" hidden>
         <div class="gal-bar">
+          <div class="gal-controls">
           <div class="seg" role="tablist" aria-label="Arrange photographs by">
             <button type="button" role="tab" data-mode="time" aria-selected="true">Timeline</button>
             <button type="button" role="tab" data-mode="colour" aria-selected="false">Colour</button>
@@ -562,6 +615,7 @@
             <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,197.66a8,8,0,0,1-11.32,0L136,163.31V224a8,8,0,0,1-16,0V163.31L85.66,197.66a8,8,0,0,1-11.32-11.32l48-48a8,8,0,0,1,11.32,0l48,48A8,8,0,0,1,181.66,197.66Zm-96-139.32L120,92.69V32a8,8,0,0,1,16,0V92.69l34.34-34.35a8,8,0,0,1,11.32,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48A8,8,0,0,1,85.66,58.34Z"></path></svg>
             <span id="galDir">Oldest first</span>
           </button>
+          </div>
           <span class="gal-count" id="galCount"></span>
         </div>
 
@@ -619,18 +673,65 @@
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   var coarse  = window.matchMedia('(pointer: coarse)');
 
-  /* ── The page-level cursor glow ─────────────────────────────────────── */
+  /* ── The page-level cursor glow ───────────────────────────────────────
+     The glow fades out whenever the pointer leaves the window and fades
+     back in where it re-enters — it is moved into place before it is lit,
+     so it never reappears at the edge it left from. */
+  var torch = document.getElementById('torch');
+  var torchOn = true;
+
+  try {
+    torchOn = localStorage.getItem('mrdp-torch') !== 'off';
+  } catch (err) { /* private mode — the default stands */ }
+
   if (!reduced.matches && !coarse.matches) {
     var raf = 0;
-    window.addEventListener('pointermove', function (e) {
+
+    function moveGlow(e) {
       if (raf) cancelAnimationFrame(raf);
       raf = requestAnimationFrame(function () {
-        glow.style.opacity = '1';
         glow.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+        if (torchOn) glow.style.opacity = '1';
       });
-    }, { passive: true });
-    window.addEventListener('pointerleave', function () { glow.style.opacity = '0'; });
+    }
+
+    function hideGlow() {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      glow.style.opacity = '0';
+    }
+
+    document.addEventListener('pointermove', moveGlow, { passive: true });
+
+    // pointerleave on window is unreliable across browsers; watch for the
+    // pointer leaving the document instead, and for the window losing focus.
+    document.addEventListener('pointerout', function (e) {
+      if (!e.relatedTarget) hideGlow();
+    });
+    document.documentElement.addEventListener('mouseleave', hideGlow);
+    window.addEventListener('blur', hideGlow);
+
+    // Re-entry: place it first, light it on the next move.
+    document.addEventListener('pointerover', function (e) {
+      if (!e.relatedTarget) glow.style.transform =
+        'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+    });
+
+    torch.addEventListener('click', function () {
+      torchOn = !torchOn;
+      paintTorch();
+      if (!torchOn) hideGlow();
+      try { localStorage.setItem('mrdp-torch', torchOn ? 'on' : 'off'); } catch (err) { /* ignore */ }
+    });
+  } else {
+    torch.hidden = true;
   }
+
+  function paintTorch() {
+    page.dataset.torch = torchOn ? 'on' : 'off';
+    torch.setAttribute('aria-pressed', String(torchOn));
+    torch.setAttribute('aria-label', torchOn ? 'Turn the torch off' : 'Turn the torch on');
+  }
+  paintTorch();
 
   /* ── Per-card glow ──────────────────────────────────────────────────── */
   rooms.forEach(function (room) {
@@ -656,6 +757,20 @@
     panel.style.height = rect.height + 'px';
   }
 
+  /* The transform that puts the title strip exactly over the card's own
+     label — the start of the flight on open, the end of it on close.
+     Measured rather than guessed, so it survives any type change. */
+  function flightTransform(room) {
+    var from = room.querySelector('.room-name').getBoundingClientRect();
+    var to   = document.getElementById('panelTitle').getBoundingClientRect();
+    var barTop = bar.getBoundingClientRect().top;
+    if (!to.width) return '';
+    var scale = from.width / to.width;
+    var dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    var dy = from.top - barTop - (to.top - barTop) * scale;
+    return 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + scale.toFixed(3) + ')';
+  }
+
   function open(room) {
     if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
     opener = room;
@@ -671,17 +786,27 @@
     body.scrollTop = 0;
     place(fromRect);
     panel.dataset.state = 'from';
-    bar.dataset.state = 'from';
     panel.hidden = false;
-    bar.hidden = false;
     scrim.hidden = false;
     room.setAttribute('aria-expanded', 'true');
+
+    // Show the strip at its final size first so it can be measured, then
+    // pin it over the card's label. It flies from there, not from nowhere.
+    bar.hidden = false;
+    bar.dataset.state = 'to';
+    if (!reduced.matches) {
+      bar.style.transition = 'none';
+      bar.style.transform = flightTransform(room);
+      bar.style.opacity = '0';
+    }
 
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         panel.style.top = panel.style.left = panel.style.width = panel.style.height = '';
         panel.dataset.state = 'to';
-        bar.dataset.state = 'to';
+        bar.style.transition = '';
+        bar.style.transform = '';
+        bar.style.opacity = '';
         page.dataset.open = 'true';
         document.getElementById('panelClose').focus({ preventScroll: true });
       });
@@ -692,15 +817,22 @@
     if (panel.hidden) return;
     if (fromRect) place(fromRect);
     panel.dataset.state = 'from';
-    bar.dataset.state = 'from';
     page.dataset.open = 'false';
     scrim.hidden = true;
+
+    // The title flies back down into the card it came from.
+    if (opener && !reduced.matches) bar.style.transform = flightTransform(opener);
+    bar.dataset.state = 'from';
+
     rooms.forEach(function (r) { r.setAttribute('aria-expanded', 'false'); });
     if (opener) { opener.focus({ preventScroll: true }); opener = null; }
     if (closeTimer) clearTimeout(closeTimer);
     closeTimer = setTimeout(function () {
       panel.hidden = true;
       bar.hidden = true;
+      bar.style.transform = '';
+      panel.style.removeProperty('--edge');
+      panel.style.removeProperty('--edge-glow');
     }, reduced.matches ? 0 : 720);
   }
 
@@ -872,9 +1004,32 @@
       : '<b>All</b><span>' + photos.length + ' photos</span>';
   }
 
+  /* The open card's edge takes the picked colour, so the frame around the
+     photographs agrees with what is inside it. */
+  function paintEdge() {
+    var panel = document.getElementById('panel');
+    if (!picked) {
+      panel.style.removeProperty('--edge');
+      panel.style.removeProperty('--edge-glow');
+      return;
+    }
+    var hex = SWATCH[picked];
+    var rgb = [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
+
+    // Black and the deeper greys would draw an edge indistinguishable from
+    // the ground, so lift the darkest swatches until the frame still reads.
+    var lum = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+    var lift = lum < 80 ? (80 - lum) / 80 * 0.55 : 0;
+    var edge = rgb.map(function (c) { return Math.round(c + (210 - c) * lift); }).join(',');
+
+    panel.style.setProperty('--edge', 'rgba(' + edge + ',.75)');
+    panel.style.setProperty('--edge-glow', 'rgba(' + edge + ',.40)');
+  }
+
   function pick(name) {
     picked = (picked === name) ? null : name;
     paintWheel();
+    paintEdge();
     apply();
   }
 
@@ -926,6 +1081,9 @@
         b.setAttribute('aria-selected', String(b === btn));
       });
       wheelBox.hidden = mode !== 'colour';
+      // Leaving Colour takes the wheel away, so it takes its filter too —
+      // no hidden reason for photographs to be missing.
+      if (mode !== 'colour' && picked) { picked = null; paintWheel(); paintEdge(); }
       apply();
     });
   });
@@ -936,7 +1094,7 @@
   });
 
   wheelMid.addEventListener('click', function () {
-    if (picked) { picked = null; paintWheel(); apply(); }
+    if (picked) { picked = null; paintWheel(); paintEdge(); apply(); }
   });
 
   /* ── Boot ────────────────────────────────────────────────────────────── */
