@@ -15,9 +15,10 @@ the rainbow with white at its violet end, black at its red end, and grey
 bridging the two.
 """
 
+import colorsys
+import hashlib
 import json
 import pathlib
-import colorsys
 from PIL import Image, ImageOps
 
 SRC = pathlib.Path("gal")
@@ -150,17 +151,17 @@ def derivative(img, edge, path, quality):
 def reindex():
     """Re-run only the colour analysis, off the thumbnails already built.
 
-    Dates and dimensions are kept from the existing index, so tuning the
-    colour rules costs seconds instead of re-encoding every photo.
+    Timeline positions and dimensions are kept from the existing index, so
+    tuning the colour rules costs seconds instead of re-encoding every photo.
     """
     index = OUT / "index.json"
     photos = json.loads(index.read_text(encoding="utf-8"))
     for p in photos:
         thumb = Image.open(OUT / "thumb" / p["file"])
-        for key in ("family", "colour", "hue", "tone", "wheel", "arc", "swatch"):
+        for key in ("family", "colour", "hue", "tone", "wheel", "swatch"):
             p.pop(key, None)
         p.update(analyse(thumb))
-    photos.sort(key=lambda p: p["date"] or "")
+    photos.sort(key=lambda p: p["seq"])
     index.write_text(json.dumps(photos, separators=(",", ":")), encoding="utf-8")
     print(f"re-analysed {len(photos)} photos -> {index}")
 
@@ -177,16 +178,24 @@ def main():
         img.draft("RGB", (VIEW_EDGE * 2, VIEW_EDGE * 2))   # fast JPEG scaling
         img = ImageOps.exif_transpose(img).convert("RGB")
 
-        name = f.stem + ".jpg"
+        # Derivatives are named from a hash of the original, not from it:
+        # camera filenames carry the capture date, and the published site is
+        # meant not to give dates away. Stable, so re-runs do not churn.
+        name = hashlib.sha1(f.stem.encode("utf-8")).hexdigest()[:12] + ".jpg"
         derivative(img, VIEW_EDGE, OUT / "view" / name, 82)
         tw, th = derivative(img, THUMB_EDGE, OUT / "thumb" / name, 78)
 
-        entry = {"file": name, "w": tw, "h": th, "date": date}
+        entry = {"file": name, "w": tw, "h": th, "_date": date or ""}
         entry.update(analyse(img))
         photos.append(entry)
         print(f"[{i:>3}/{len(files)}] {name}  {entry['colour']:<7} {date}")
 
-    photos.sort(key=lambda p: p["date"] or "")
+    # The capture date orders the timeline but is never published: the index
+    # carries only the resulting position, so no date reaches the page.
+    photos.sort(key=lambda p: p.pop("_date"))
+    for n, p in enumerate(photos):
+        p["seq"] = n
+
     (OUT / "index.json").write_text(
         json.dumps(photos, indent=None, separators=(",", ":")), encoding="utf-8")
     print(f"\n{len(photos)} photos -> {OUT/'index.json'}")

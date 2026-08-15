@@ -1,6 +1,6 @@
 # MrDp
 
-A one-screen portfolio — Work, Writing and Gallery open as an expanding panel over the
+A one-screen portfolio — Gallery and Work open as an expanding panel over the
 homepage rather than as separate pages. Built on the **Nocturne** design system: a dark
 blue-grey ground, a single blurple accent used as line and glow, and no flat saturated fills.
 
@@ -41,8 +41,8 @@ which `file://` blocks.
 
 86 photographs, arranged two ways over the same set:
 
-- **Timeline** — by the capture date read out of each photo's EXIF. The arrow flips
-  between oldest and newest first.
+- **Timeline** — by the capture date read out of each photo's EXIF at build time.
+  The arrow flips between oldest and newest first.
 - **Colour** — by dominant colour, placed around a wheel that runs the rainbow, then
   white, grey and black closing the circle back into red. The arrow reverses it, and
   picking a wedge shows only that colour.
@@ -66,6 +66,10 @@ python tools/build-artifact.py    # refresh the single-file copy
 `--reindex` to re-classify from the existing thumbnails instead of re-encoding
 everything.
 
+No capture date reaches the published site. The index carries only the resulting
+timeline position, derivatives are named from a hash of the original rather than
+from the camera's dated filename, and re-encoding drops the EXIF.
+
 Originals stay in `gal/`, which is gitignored: 86 phone photographs are 284 MB, and
 the committed web copies are 21 MB.
 
@@ -75,14 +79,13 @@ the committed web copies are 21 MB.
   `_ds/nocturne-…/styles.css`. Nothing in `index.html` hardcodes a value the tokens
   already carry, apart from the three local surfaces (`--card`, `--card-hover`,
   `--panel`) declared at the top of its `<style>` block.
-- **Content** — Work rows and Writing entries are plain markup inside `#panelBody`
-  in `index.html`.
+- **Content** — the Work rows are plain markup inside `#panelBody` in `index.html`.
 - **After changing `index.html`**, run `python tools/build-artifact.py`.
 
 ## Notes
 
-- The Work and Writing entries are sample content and read as placeholders until real
-  ones replace them.
+- The Work entries are sample content and read as placeholders until real ones
+  replace them.
 - `dist/artifact.html` is a preview build for hosts that block external requests: it
   carries the stylesheet and all 86 thumbnails inline, so its full view shows the
   520px copy rather than the 1600px one.
