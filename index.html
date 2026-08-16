@@ -46,15 +46,25 @@
     --panel-left: 4vw;
     --panel-w: 92vw;
     --panel-h: 79vh;
-    --ring: 340px;        /* the colour ring's outer diameter */
-    --ring-hole: 76%;     /* of its radius — the clear middle */
+    --ring: 360px;        /* the colour ring's outer diameter */
+    --ring-hole: 78%;     /* of its radius — the clear middle */
+    --stack: 196px;       /* the title strip's height, measured from script */
   }
 
   /* Each section makes its own room: Work needs only a title above it, the
-     gallery also carries the tabs, and colour mode adds the ring. */
-  .page[data-room="gallery"] { --panel-top: 25vh; --panel-h: 69vh; }
+     gallery also carries the tabs, and colour mode adds the ring. The strip
+     is measured rather than guessed (--stack), so the panel sits just under
+     whatever it actually is. */
+  .page[data-room="gallery"] {
+    --panel-top: calc(var(--titlebar-top) + var(--stack) + 16px);
+    --panel-h: calc(100dvh - var(--panel-top) - 6vh);
+  }
+  /* Colour mode hangs the ring around the strip. The panel does not clear
+     the ring — its top edge cuts across the ring's lower arc, so the wheel
+     costs the photographs less than standing clear of it would. */
   .page[data-room="gallery"][data-mode="colour"] {
-    --titlebar-top: 11vh; --panel-top: 41vh; --panel-h: 53vh;
+    --titlebar-top: max(10vh, 92px);
+    --panel-top: calc(var(--titlebar-top) + var(--stack) / 2 + var(--ring) / 2 - 64px);
   }
 
   html { scrollbar-color: var(--color-neutral-800) transparent; scrollbar-width: thin; }
@@ -355,8 +365,17 @@
   .wheel path:focus-visible { outline: none; stroke: var(--color-accent-100); }
   .wheel path[data-on="1"] { fill: rgba(245,244,255,.10); stroke: var(--color-accent-100); }
 
-  /* ─── The grid ───────────────────────────────────────────────────────── */
-  .gal-grid { position: relative; width: 100%; }
+  /* ─── The grid ─────────────────────────────────────────────────────────
+     Clipped, not merely tall enough: the tiles are absolutely positioned,
+     and a filtered-out tile still counts toward the scrolling area of the
+     panel even at opacity 0 — which is what left two photographs scrolling
+     like eighty-six. Clipping ends the grid at its own height. The margin
+     keeps the hover shadow, and the fan-in from below, from being cut. */
+  .gal-grid {
+    position: relative; width: 100%;
+    overflow: hidden;                /* older engines: correct, if tighter */
+    overflow: clip; overflow-clip-margin: 24px;
+  }
   .shot {
     position: absolute; top: 0; left: 0; margin: 0; overflow: hidden;
     border-radius: var(--radius-md); background: var(--card);
@@ -386,20 +405,38 @@
     touch-action: none;
   }
 
-  /* ─── The deck ──────────────────────────────────────────────────────────
-     The photograph in front, its neighbours behind it and to either side,
-     dimmed and set back. Clicking one brings it forward; the deck slides,
-     it brightens, and the next one takes its place at the edge. */
-  .deck { position: absolute; inset: 0; }
+  /* ─── The turntable ─────────────────────────────────────────────────────
+     A photograph opens as a card standing on a circle, with its neighbours
+     around the same circle: angled away from you, set back and dimmed.
+     Turning the ring brings one to the front. This is the circular-gallery
+     component's geometry — a single perspective, each item placed by
+     rotateY() + translateZ(), and its light falling off with the angle —
+     written in the plain CSS and JS the rest of this page is built from.
+
+     The ring is pulled back by its own radius so the front card sits at
+     z = 0: without that, translateZ() toward the camera would magnify it
+     by the perspective ratio and its size would depend on the radius. */
+  .stage { position: absolute; inset: 0; perspective: 2200px; }
+  .ring3d { position: absolute; inset: 0; transform-style: preserve-3d; }
   .card {
     position: absolute; top: 50%; left: 50%;
-    width: 56vw; height: 76dvh;
-    display: flex; align-items: center; justify-content: center;
+    width: 46vw; height: 72dvh;
     padding: 0; border: 0; background: transparent; cursor: pointer;
-    transition: transform .55s var(--card-ease), opacity .45s ease, filter .55s ease;
-    will-change: transform;
+    backface-visibility: hidden;
+    transition: transform .62s var(--card-ease);
   }
-  .card img { box-shadow: 0 26px 70px rgba(0,0,0,.72); }
+  /* The dim is a layer of its own — see the note in the script. */
+  .shade {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+    transition: opacity .45s ease, filter .55s ease;
+  }
+  /* A drag turns the ring under the hand, so it cannot also be easing. */
+  .ring3d[data-drag] .card { transition: none; }
+  .card img {
+    box-shadow: 0 26px 70px rgba(0,0,0,.72); object-fit: contain;
+    user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
+  }
   .card[data-slot="0"] { cursor: zoom-in; }
   .card[data-slot="0"] img { box-shadow: 0 30px 90px rgba(0,0,0,.8), 0 0 0 1px rgba(145,132,217,.28); }
   .viewer[data-zoomed="1"] .card[data-slot="0"] { cursor: grab; }
@@ -444,11 +481,10 @@
     :root {
       --titlebar-top: 2vh; --panel-top: 10vh; --panel-left: 3vw;
       --panel-w: 94vw; --panel-h: 80dvh;
-      --ring: 290px;
+      --ring: 310px; --ring-hole: 76%;
     }
-    .page[data-room="gallery"] { --panel-top: 27vh; --panel-h: 67dvh; }
     .page[data-room="gallery"][data-mode="colour"] {
-      --titlebar-top: 9vh; --panel-top: 46vh; --panel-h: 48dvh;
+      --titlebar-top: max(8vh, 84px);
     }
     .card { width: 84vw; height: 62dvh; }
     .home { grid-template-rows: auto auto auto; row-gap: var(--space-8); padding-bottom: var(--space-8); }
@@ -467,6 +503,17 @@
     .gal-controls { gap: var(--space-2); }
     .seg button { padding: 6px 12px; font-size: 12px; }
     .viewer .v-close { width: 40px; height: 40px; }
+  }
+
+  /* ─── Short windows ──────────────────────────────────────────────────────
+     A ring around a full-size strip does not fit under a low ceiling, so
+     the strip gives up a little and the ring comes in with it. The panel
+     needs no rule of its own: it is placed off the measured --stack. */
+  @media (max-height: 760px) {
+    :root { --ring: 316px; --ring-hole: 76%; }
+    .panel-title { font-size: 30px; }
+    .gal-controls { gap: var(--space-2); }
+    .gal-count { display: none; }
   }
 
   /* ─── Motion ─────────────────────────────────────────────────────────── */
@@ -638,7 +685,9 @@
   </div>
 
   <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Photograph" hidden>
-    <div class="deck" id="deck"></div>
+    <div class="stage" id="stage">
+      <div class="ring3d" id="ring3d"></div>
+    </div>
     <button class="v-close" type="button" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
     </button>
@@ -791,8 +840,6 @@
     var isGallery = room.dataset.room === 'gallery';
     page.dataset.room = room.dataset.room;
     document.getElementById('galControls').hidden = !isGallery;
-    if (isGallery) document.dispatchEvent(new CustomEvent('gallery:show'));
-
     body.scrollTop = 0;
     place(fromRect);
     panel.dataset.state = 'from';
@@ -804,6 +851,11 @@
     // pin it over the card's label. It flies from there, not from nowhere.
     bar.hidden = false;
     bar.dataset.state = 'to';
+
+    // Now that the strip is laid out it can be measured, and the panel
+    // placed under it — so this fires here rather than earlier.
+    if (isGallery) document.dispatchEvent(new CustomEvent('gallery:show'));
+
     if (!reduced.matches) {
       bar.style.transition = 'none';
       bar.style.transform = flightTransform(room);
@@ -896,7 +948,9 @@
   var wheelEl    = document.getElementById('wheel');
   var wheelHit   = document.getElementById('wheelHit');
   var viewer     = document.getElementById('viewer');
-  var deck       = document.getElementById('deck');
+  var stage      = document.getElementById('stage');
+  var ring3d     = document.getElementById('ring3d');
+  var barStack   = document.querySelector('.bar-stack');
   var page       = document.getElementById('page');
   var zoomLabel  = document.getElementById('viewerZoom');
 
@@ -959,6 +1013,14 @@
     grid.style.height = shown.length
       ? (Math.max.apply(null, heights) - GAP) + 'px' : '0px';
 
+    // Filtered-out tiles are parked at the grid's own origin rather than
+    // left where they were: an absolutely positioned tile still counts
+    // toward the panel's scrolling area at opacity 0, and a tile parked
+    // 9000px down is a scrollbar with nothing under it.
+    photos.forEach(function (p) {
+      if (p.el.hasAttribute('data-out')) { p.el.style.top = '0px'; p.el.style.left = '0px'; }
+    });
+
     if (!revealed) stage();
   }
 
@@ -996,7 +1058,17 @@
     window.setTimeout(reveal, 760);
   }
 
+  /* The strip carries the title, the tabs and the reverse control, and in
+     colour mode a ring around all three. Everything below it is placed off
+     its height, so measure it rather than keeping a number here in step. */
+  function sizeStack() {
+    if (barStack.offsetHeight) {
+      page.style.setProperty('--stack', barStack.offsetHeight + 'px');
+    }
+  }
+
   document.addEventListener('gallery:show', function () {
+    sizeStack();
     if (photos.length) armReveal();
     else waiting = true;      // built later; build() picks this up
   });
@@ -1116,26 +1188,33 @@
     apply();
   }
 
-  /* ── The deck ─────────────────────────────────────────────────────────
-     No arrows: the neighbouring photographs are themselves cards, set back
-     and dimmed on either side. Click one and the deck slides — it comes
-     forward and brightens, the one in front slides off to the side, and a
-     new card arrives at the far edge. */
-  var SLOTS = [                       // by distance from the front card
-    { x: 0,    s: 1,    dim: 1,   z: 30 },
-    { x: 0.40, s: 0.80, dim: .42, z: 20 },
-    { x: 0.66, s: 0.64, dim: .22, z: 10 }
-  ];
-  var REACH = SLOTS.length - 1;       // how far back the deck is drawn
-  var cards = [];                     // one per photograph, in `shown` order
+  /* ── The turntable ────────────────────────────────────────────────────
+     No arrows: the neighbouring photographs stand on the same circle as
+     the one you are looking at, turned away from you, set back and dimmed.
+     Click one — or scroll, or drag — and the ring turns until it faces the
+     camera.
+
+     This is the circular-gallery component's geometry, in the plain JS this
+     page is written in: every card placed by rotateY(i·step) translateZ(r)
+     inside one perspective, and its light falling off with its angle. Its
+     scroll-linked rotation is kept — here the wheel has nothing else to do
+     until you zoom in, at which point it goes back to zooming. Its idle
+     auto-rotation is not: a photograph that drifts while you look at it is
+     fighting you. */
+  var STEP   = 30;      // degrees between neighbours around the ring
+  var REACH  = 4;       // how many either side are drawn at all
+  var radius = 900;     // of the ring, in px — sized to the viewport
+  var cards  = [];      // one per photograph, in `shown` order
+  var lit    = [];      // the indices the last paint placed
 
   var MIN_Z = 1, MAX_Z = 6;
   var zoom = 1, panX = 0, panY = 0;
   var drag = null;
+  var turned = 0;       // px of the last drag, so it is not read as a click
 
   function frontImg() {
     var c = cards[at];
-    return c ? c.firstChild : null;
+    return c ? c.querySelector('img') : null;
   }
 
   function paintZoom() {
@@ -1185,18 +1264,28 @@
   }
 
   /* Build one card per photograph in the current order. */
-  function buildDeck() {
-    deck.textContent = '';
+  function buildRing() {
+    ring3d.textContent = '';
     cards = shown.map(function (p, i) {
       var card = document.createElement('button');
       card.className = 'card';
       card.type = 'button';
       card.setAttribute('aria-label', 'Photograph ' + (i + 1) + ' of ' + shown.length);
+      // The dimming lives on an inner wrapper, not on the card itself:
+      // opacity and filter are grouping properties, and in Chromium a
+      // grouped element drops out of the 3D depth sort and is painted in
+      // document order — which laid each neighbour over the photograph in
+      // front of it, exactly the flap this geometry is meant to avoid.
+      var shade = document.createElement('span');
+      shade.className = 'shade';
       var img = new Image();
       img.alt = '';
       img.decoding = 'async';
-      card.appendChild(img);
+      img.draggable = false;      // or the browser's own drag beats ours
+      shade.appendChild(img);
+      card.appendChild(shade);
       card.addEventListener('click', function (e) {
+        if (Math.abs(turned) > 6) return;    // that was a drag, not a click
         var d = i - at;
         if (d === 0) {
           if (zoom > 1.01) resetZoom();
@@ -1205,53 +1294,122 @@
           goTo(i);
         }
       });
-      deck.appendChild(card);
+      ring3d.appendChild(card);
+      park(card);
       return card;
     });
+    lit = [];
   }
 
-  /* Place every card by its distance from the front one. */
-  function paintDeck() {
-    var w = viewer.clientWidth || window.innerWidth;
-    cards.forEach(function (card, i) {
-      var d = i - at;
-      var far = Math.abs(d) > REACH;
-      var slot = SLOTS[Math.min(Math.abs(d), REACH)];
-      var sign = d < 0 ? -1 : 1;
-      var x = (far ? SLOTS[REACH].x + 0.16 : slot.x) * w * sign;
+  /* Out of the window: no transform of its own would leave a card sitting
+     square in the middle of the screen, over the photograph. */
+  function park(card) {
+    card.style.visibility = 'hidden';
+    card.firstChild.style.opacity = '0';
+    card.style.pointerEvents = 'none';
+    card.dataset.slot = 'far';
+  }
 
-      card.style.transform = 'translate(calc(-50% + ' + x.toFixed(1) + 'px), -50%) scale(' +
-                             (far ? SLOTS[REACH].s * 0.9 : slot.s).toFixed(3) + ')';
-      card.style.filter = 'brightness(' + (far ? 0 : slot.dim) + ')';
-      card.style.opacity = far ? '0' : '1';
-      card.style.zIndex = far ? 0 : slot.z;
+  /* How far the ring stands from the camera. The cards keep their CSS size
+     because the ring is pulled back by exactly this much (see turnTo), so
+     the radius only decides how far apart the neighbours sit.
+
+     `recess` is the fix for something the plain circle gets wrong: two
+     cards on one circle cannot overlap on screen without their planes
+     crossing — the near edge of the neighbour ends up in front of the
+     photograph you are looking at, laid over it like a flap. (The two
+     conditions work out to the same cot(step/2), so there is no radius
+     that gives one without the other.) So each card is also stepped back
+     along the camera's own axis, by enough to clear the one in front of
+     it — the overlap stays, the crossing goes.
+
+     The clearance is generous on purpose. Measured in headless Chrome, a
+     card sitting 46px behind the one in front of it was still painted over
+     it; at 170px the order came out right. Depth sorting evidently has more
+     slop than the geometry does, so the margin is set well past where it
+     started behaving rather than at the edge of it. */
+  var recess = 96;
+
+  function measureRing() {
+    var w = viewer.clientWidth || window.innerWidth;
+    radius = Math.round(Math.max(430, Math.min(w * 0.58, 1150)));
+
+    var cardW = cards.length ? cards[0].offsetWidth : w * 0.46;
+    var rad = STEP * Math.PI / 180;
+    recess = Math.round(Math.max(170,
+      cardW / 2 * Math.sin(rad) - radius * (1 - Math.cos(rad)) + 160));
+  }
+
+  /* Place the cards around the circle, seen from `pos` — a whole number
+     once the ring has settled, a fraction while a drag is in progress.
+     Each card carries its own place, so turning is the cards moving rather
+     than a rotation of the container: one transform to interpolate per
+     card, and no fighting between the two.
+
+     Only the cards near the front are worth touching; the rest are held one
+     step outside the window so that coming back in is a short move. */
+  function paintRing(pos) {
+    if (pos === undefined) pos = at;
+    var lo = Math.max(0, Math.floor(pos) - REACH - 2);
+    var hi = Math.min(cards.length - 1, Math.ceil(pos) + REACH + 2);
+
+    // Whatever the last paint lit and this one does not, put away — a fling
+    // can move the window by more than its own width.
+    lit.forEach(function (i) { if (i < lo || i > hi) park(cards[i]); });
+    lit = [];
+
+    for (var i = lo; i <= hi; i++) {
+      lit.push(i);
+      var card = cards[i];
+      var d = i - pos;
+      var ad = Math.abs(d);
+      var far = ad > REACH + 0.5;
+      var held = Math.max(-REACH - 1, Math.min(REACH + 1, d));
+
+      card.style.transform =
+        'translate(-50%, -50%) translateZ(' + (-recess * Math.min(ad, REACH + 1)).toFixed(1) +
+        'px) translateZ(' + (-radius) + 'px) rotateY(' + (held * STEP).toFixed(2) +
+        'deg) translateZ(' + radius + 'px)';
+      var shade = card.firstChild;
+      shade.style.opacity = far ? '0' : Math.max(0.3, 1 - ad * STEP / 180).toFixed(3);
+      shade.style.filter = 'brightness(' + (far ? 0 : Math.max(0.26, 1 - ad * 0.26)).toFixed(2) + ')';
+      card.style.visibility = far ? 'hidden' : '';
+      // Depth ought to decide what covers what, and inside a 3D context it
+      // is supposed to. Measured here it does not: the cards paint in
+      // document order, so every card to the right of the front one laid
+      // itself over the photograph. A z-index is ignored where the depth
+      // sort works and settles it where it does not.
+      card.style.zIndex = String(50 - Math.round(ad));
       card.style.pointerEvents = far ? 'none' : 'auto';
-      card.dataset.slot = far ? 'far' : String(d);
+      card.dataset.slot = far ? 'far' : String(Math.round(d));
 
       // Only the cards in play carry an image; the front pair get the big
       // copy so stepping across is instant, the rest make do with a thumb.
-      var img = card.firstChild;
-      var want = Math.abs(d) <= 1 ? 'full' : (Math.abs(d) <= REACH + 1 ? 'thumb' : null);
+      var img = shade.firstChild;
+      var want = ad <= 1 ? 'full' : (ad <= REACH + 1 ? 'thumb' : null);
       if (want && img.dataset.tier !== 'full' && img.dataset.tier !== want) {
         img.src = want === 'full' ? fullSrc(shown[i]) : thumbSrc(shown[i]);
         img.dataset.tier = want;
       }
-    });
+    }
   }
 
   function goTo(i) {
     if (!cards.length) return;
     resetZoom();
-    at = Math.max(0, Math.min(cards.length - 1, i));
-    paintDeck();
+    at = clampAt(i);
+    paintRing();
   }
+
+  function clampAt(pos) { return Math.max(0, Math.min(cards.length - 1, pos)); }
 
   function step(by) { if (cards.length) goTo(at + by); }
 
   function openViewer(p) {
     at = shown.indexOf(p);
-    buildDeck();
-    paintDeck();
+    measureRing();
+    buildRing();
+    paintRing();
     resetZoom();
     viewer.hidden = false;
     requestAnimationFrame(function () { viewer.dataset.on = '1'; });
@@ -1262,7 +1420,7 @@
     viewer.dataset.on = '0';
     setTimeout(function () {
       viewer.hidden = true;
-      deck.textContent = '';
+      ring3d.textContent = '';
       cards = [];
       zoom = 1; panX = panY = 0;
     }, 300);
@@ -1274,33 +1432,71 @@
 
   // A click on the backdrop closes; a click on a card never reaches it.
   viewer.addEventListener('click', function (e) {
-    if ((e.target === viewer || e.target === deck) && zoom === 1) closeViewer();
+    if (zoom !== 1 || Math.abs(turned) > 6) return;
+    if (e.target === viewer || e.target === stage || e.target === ring3d) closeViewer();
   });
 
+  /* The wheel turns the ring, as it does in the component this came from —
+     until you are zoomed in, where it goes back to being zoom, or there
+     would be no way to scroll back out. */
+  var spin = 0;
   viewer.addEventListener('wheel', function (e) {
     e.preventDefault();
-    setZoom(zoom * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
+    if (zoom > 1.01) {
+      setZoom(zoom * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
+      return;
+    }
+    spin += e.deltaY;
+    if (Math.abs(spin) >= 48) { step(spin > 0 ? 1 : -1); spin = 0; }
   }, { passive: false });
 
-  deck.addEventListener('pointerdown', function (e) {
-    if (zoom <= 1.01) return;
-    var img = frontImg();
-    if (!img || !img.contains(e.target)) return;
-    drag = { x: e.clientX, y: e.clientY, px: panX, py: panY, id: e.pointerId };
-    deck.setPointerCapture(e.pointerId);
-    e.preventDefault();
+  /* Dragging pans the photograph when it is zoomed, and turns the ring when
+     it is not — the ring follows the hand and settles on a card. */
+  var TURN = 0.22;      // degrees of ring per pixel dragged
+  stage.addEventListener('pointerdown', function (e) {
+    turned = 0;
+    if (zoom > 1.01) {
+      var img = frontImg();
+      if (!img || !img.contains(e.target)) return;
+      drag = { mode: 'pan', x: e.clientX, y: e.clientY, px: panX, py: panY };
+      stage.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    } else {
+      // No capture and no preventDefault here: both retarget the click that
+      // follows away from the card, and clicking a card is how you bring it
+      // to the front. The stage covers the viewport, so its own pointermove
+      // is enough to follow the drag.
+      if (cards.length) drag = { mode: 'turn', x: e.clientX };
+    }
   });
-  deck.addEventListener('pointermove', function (e) {
+  stage.addEventListener('pointermove', function (e) {
     if (!drag) return;
-    panX = drag.px + (e.clientX - drag.x);
-    panY = drag.py + (e.clientY - drag.y);
-    clampPan();
-    paintZoom();
+    if (drag.mode === 'pan') {
+      panX = drag.px + (e.clientX - drag.x);
+      panY = drag.py + (e.clientY - drag.y);
+      clampPan();
+      paintZoom();
+      return;
+    }
+    turned = e.clientX - drag.x;
+    ring3d.dataset.drag = '1';          // follow the hand, without easing
+    paintRing(clampAt(at - turned * TURN / STEP));
   });
   ['pointerup', 'pointercancel'].forEach(function (ev) {
-    deck.addEventListener(ev, function () { drag = null; });
+    stage.addEventListener(ev, function () {
+      if (drag && drag.mode === 'turn') {
+        ring3d.removeAttribute('data-drag');
+        goTo(Math.round(clampAt(at - turned * TURN / STEP)));
+      }
+      drag = null;
+    });
   });
-  window.addEventListener('resize', function () { if (!viewer.hidden) paintDeck(); });
+
+  window.addEventListener('resize', function () {
+    if (viewer.hidden) return;
+    measureRing();
+    paintRing();
+  });
 
   document.addEventListener('keydown', function (e) {
     if (viewer.hidden) return;
