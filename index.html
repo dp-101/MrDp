@@ -366,6 +366,30 @@
   .viewer img {
     max-width: 92vw; max-height: 82dvh; border-radius: var(--radius-md);
     box-shadow: 0 30px 90px rgba(0,0,0,.7);
+    transform-origin: center; will-change: transform;
+    transition: transform .22s ease-out;
+    cursor: zoom-in; touch-action: none;
+  }
+  .viewer[data-zoomed="1"] img { cursor: grab; border-radius: 0; }
+  .viewer[data-zoomed="1"] img:active { cursor: grabbing; }
+
+  .v-zoom {
+    position: absolute; left: 50%; bottom: 3.5dvh; transform: translateX(-50%);
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 5px 7px; border-radius: var(--radius-md);
+    background: rgba(35,37,50,.82); border: 1px solid var(--rule);
+  }
+  /* Specificity has to beat `.viewer button`, which places the corner
+     controls absolutely; these three sit in a row instead. */
+  .viewer .v-zoom button {
+    position: static; width: 34px; height: 34px; border-radius: var(--radius-sm);
+    background: transparent; border: 0;
+  }
+  .viewer .v-zoom button:disabled { opacity: .3; cursor: default; }
+  .viewer .v-zoom button:disabled:hover { background: transparent; color: var(--color-neutral-300); }
+  .v-level {
+    min-width: 46px; text-align: center; font-size: 12px;
+    color: var(--color-neutral-400); font-variant-numeric: tabular-nums;
   }
   .viewer button {
     position: absolute; display: flex; align-items: center; justify-content: center;
@@ -588,6 +612,20 @@
     <button class="v-close" type="button" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
     </button>
+
+    <div class="v-zoom">
+      <button class="v-out" type="button" aria-label="Zoom out">
+        <svg width="18" height="18" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" aria-hidden="true">
+          <circle cx="112" cy="112" r="80"></circle><path d="M168 224l-40-40M80 112h64"></path>
+        </svg>
+      </button>
+      <span class="v-level" id="viewerZoom">100%</span>
+      <button class="v-in" type="button" aria-label="Zoom in">
+        <svg width="18" height="18" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" aria-hidden="true">
+          <circle cx="112" cy="112" r="80"></circle><path d="M168 224l-40-40M80 112h64M112 80v64"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -823,6 +861,7 @@
   var wheelMid   = document.getElementById('wheelCentre');
   var viewer     = document.getElementById('viewer');
   var viewerImg  = document.getElementById('viewerImg');
+  var zoomLabel  = document.getElementById('viewerZoom');
 
   var photos = [];    // every photograph, in the order the index lists them
   var shown  = [];    // the current filtered, sorted view
@@ -830,6 +869,7 @@
   var dir    = { time: 'asc', colour: 'asc' };
   var picked = null;  // a colour name, or null for all
   var lastWidth = 0;
+  var revealed = false;   // have the photographs fanned out yet
   var at = -1;        // index into `shown` while the viewer is open
 
   function thumbSrc(p) { return p.thumb || 'assets/photos/thumb/' + p.file; }
@@ -863,7 +903,7 @@
     if (!width) return;
     lastWidth = width;
 
-    var cols = Math.max(1, Math.min(5, Math.round(width / 265)));
+    var cols = Math.max(1, Math.min(4, Math.round(width / 430)));
     var colW = (width - GAP * (cols - 1)) / cols;
     var heights = [];
     for (var i = 0; i < cols; i++) heights.push(0);
@@ -880,6 +920,58 @@
 
     grid.style.height = shown.length
       ? (Math.max.apply(null, heights) - GAP) + 'px' : '0px';
+
+    if (!revealed) stage();
+  }
+
+  /* ── Arrival ────────────────────────────────────────────────────────────
+     The photographs stay out of the way while the card expands — laying
+     out and decoding 86 of them mid-animation is what made it stutter.
+     They wait, gathered at the middle of the card's bottom edge, and fan
+     out to their tiles once the card has finished opening. */
+  function originPoint() {
+    var g = grid.getBoundingClientRect();
+    var p = document.getElementById('panel').getBoundingClientRect();
+    return { x: g.width / 2, y: p.bottom - g.top };
+  }
+
+  function stage() {
+    var o = originPoint();
+    shown.forEach(function (p) {
+      var el = p.el;
+      var x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+      var w = parseFloat(el.style.width), h = parseFloat(el.style.height);
+      el.style.transition = 'none';
+      el.style.transform = 'translate(' + (o.x - (x + w / 2)).toFixed(1) + 'px,' +
+                                          (o.y - (y + h / 2)).toFixed(1) + 'px) scale(.18)';
+      el.style.opacity = '0';
+    });
+  }
+
+  function reveal() {
+    if (revealed || !shown.length) return;
+    revealed = true;
+
+    // Sources are attached now, not at build time, so no decoding competes
+    // with the card's expansion.
+    photos.forEach(function (p) {
+      var img = p.el.firstChild;
+      if (!img.getAttribute('src')) img.setAttribute('src', thumbSrc(p));
+    });
+
+    shown.forEach(function (p, i) {
+      window.setTimeout(function () {
+        p.el.style.transition = 'transform .62s cubic-bezier(.2,.75,.25,1), opacity .45s ease';
+        p.el.style.transform = '';
+        p.el.style.opacity = '';
+      }, i * 11);
+    });
+
+    // Hand the tiles back to the stylesheet once they have all landed, so
+    // re-sorting animates on its own transition rather than this one.
+    window.setTimeout(function () {
+      photos.forEach(function (p) { p.el.style.transition = ''; });
+    }, shown.length * 11 + 750);
   }
 
   /* ── The wheel ───────────────────────────────────────────────────────── */
@@ -974,7 +1066,51 @@
     apply();
   }
 
-  /* ── Full view ───────────────────────────────────────────────────────── */
+  /* ── Full view ────────────────────────────────────────────────────────
+     The 2400px copy, with zoom on the wheel, the +/- controls or a double
+     click, and drag to pan once there is more picture than screen. */
+  var MIN_Z = 1, MAX_Z = 6;
+  var zoom = 1, panX = 0, panY = 0;
+  var drag = null;
+
+  function paintZoom() {
+    viewerImg.style.transform =
+      'translate(' + panX.toFixed(1) + 'px,' + panY.toFixed(1) + 'px) scale(' + zoom.toFixed(3) + ')';
+    viewer.dataset.zoomed = zoom > 1.01 ? '1' : '0';
+    viewer.querySelector('.v-out').disabled = zoom <= MIN_Z + 0.01;
+    viewer.querySelector('.v-in').disabled = zoom >= MAX_Z - 0.01;
+    zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  }
+
+  function clampPan() {
+    // Never let the picture be dragged clear of the window.
+    var r = viewerImg.getBoundingClientRect();
+    var overX = Math.max(0, (r.width - viewer.clientWidth) / 2);
+    var overY = Math.max(0, (r.height - viewer.clientHeight) / 2);
+    panX = Math.max(-overX, Math.min(overX, panX));
+    panY = Math.max(-overY, Math.min(overY, panY));
+  }
+
+  function setZoom(next, cx, cy) {
+    next = Math.max(MIN_Z, Math.min(MAX_Z, next));
+    if (next === zoom) return;
+    if (cx !== undefined && zoom > 0) {
+      // Keep whatever is under the pointer under the pointer.
+      var r = viewerImg.getBoundingClientRect();
+      var ox = cx - (r.left + r.width / 2);
+      var oy = cy - (r.top + r.height / 2);
+      var k = next / zoom;
+      panX -= ox * (k - 1);
+      panY -= oy * (k - 1);
+    }
+    zoom = next;
+    if (zoom === 1) { panX = panY = 0; }
+    clampPan();
+    paintZoom();
+  }
+
+  function resetZoom() { zoom = 1; panX = panY = 0; paintZoom(); }
+
   function openViewer(p) {
     at = shown.indexOf(p);
     show();
@@ -986,6 +1122,7 @@
   function show() {
     var p = shown[at];
     if (!p) return;
+    resetZoom();
     viewerImg.src = fullSrc(p);
     viewerImg.alt = 'Photograph';
   }
@@ -998,18 +1135,59 @@
 
   function closeViewer() {
     viewer.dataset.on = '0';
-    setTimeout(function () { viewer.hidden = true; viewerImg.removeAttribute('src'); }, 300);
+    setTimeout(function () {
+      viewer.hidden = true;
+      viewerImg.removeAttribute('src');
+      resetZoom();
+    }, 300);
   }
 
   viewer.querySelector('.v-prev').addEventListener('click', function () { step(-1); });
   viewer.querySelector('.v-next').addEventListener('click', function () { step(1); });
   viewer.querySelector('.v-close').addEventListener('click', closeViewer);
-  viewer.addEventListener('click', function (e) { if (e.target === viewer) closeViewer(); });
+  viewer.querySelector('.v-in').addEventListener('click', function () { setZoom(zoom * 1.5); });
+  viewer.querySelector('.v-out').addEventListener('click', function () { setZoom(zoom / 1.5); });
+
+  // A click on the backdrop closes — but not when it ends a pan.
+  viewer.addEventListener('click', function (e) {
+    if (e.target === viewer && zoom === 1) closeViewer();
+  });
+
+  viewerImg.addEventListener('dblclick', function (e) {
+    if (zoom > 1.01) resetZoom();
+    else setZoom(2.5, e.clientX, e.clientY);
+  });
+
+  viewer.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    setZoom(zoom * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
+  }, { passive: false });
+
+  viewerImg.addEventListener('pointerdown', function (e) {
+    if (zoom <= 1.01) return;
+    drag = { x: e.clientX, y: e.clientY, px: panX, py: panY };
+    viewerImg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  viewerImg.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    panX = drag.px + (e.clientX - drag.x);
+    panY = drag.py + (e.clientY - drag.y);
+    clampPan();
+    paintZoom();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (ev) {
+    viewerImg.addEventListener(ev, function () { drag = null; });
+  });
+
   document.addEventListener('keydown', function (e) {
     if (viewer.hidden) return;
-    if (e.key === 'Escape')     { e.preventDefault(); closeViewer(); }
+    if (e.key === 'Escape')     { e.preventDefault(); zoom > 1.01 ? resetZoom() : closeViewer(); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
     if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoom * 1.5); }
+    if (e.key === '-')          { e.preventDefault(); setZoom(zoom / 1.5); }
+    if (e.key === '0')          { e.preventDefault(); resetZoom(); }
   });
 
   /* ── Controls ────────────────────────────────────────────────────────── */
@@ -1044,8 +1222,8 @@
       el.className = 'shot';
       el.type = 'button';
       el.setAttribute('aria-label', 'Open photograph');
+      // No src yet — reveal() attaches it once the card has finished opening.
       var img = new Image();
-      img.src = thumbSrc(p);
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
@@ -1066,11 +1244,23 @@
       }).observe(grid);
     }
     window.addEventListener('resize', layout);
+
     // The panel takes ~720ms to reach full width. Lay out across that span
-    // as well, so the grid is right even where ResizeObserver is missing.
+    // as well, so the grid is right even where ResizeObserver is missing —
+    // then, once it has settled, let the photographs in.
     document.addEventListener('gallery:show', function () {
-      [0, 60, 400, 780].forEach(function (t) { setTimeout(layout, t); });
+      revealed = false;
+      [0, 60, 400, 700].forEach(function (t) { setTimeout(layout, t); });
+      setTimeout(reveal, 760);
     });
+
+    // Warm the thumbnails while the visitor is still on the home screen, so
+    // opening the gallery is a layout, not a download.
+    var warm = function () {
+      photos.forEach(function (p) { new Image().src = thumbSrc(p); });
+    };
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 4000 });
+    else setTimeout(warm, 1500);
   }
 
   if (window.__PHOTOS__) {

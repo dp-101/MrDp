@@ -24,7 +24,7 @@ from PIL import Image, ImageOps
 SRC = pathlib.Path("gal")
 OUT = pathlib.Path("assets/photos")
 THUMB_EDGE = 520        # grid
-VIEW_EDGE = 1600        # full view
+VIEW_EDGE = 2400        # full view, with room to zoom into
 ANALYSIS_EDGE = 160     # colour sampling
 
 # A pixel only votes on hue if it is colourful enough and neither crushed
@@ -182,7 +182,7 @@ def main():
         # camera filenames carry the capture date, and the published site is
         # meant not to give dates away. Stable, so re-runs do not churn.
         name = hashlib.sha1(f.stem.encode("utf-8")).hexdigest()[:12] + ".jpg"
-        derivative(img, VIEW_EDGE, OUT / "view" / name, 82)
+        derivative(img, VIEW_EDGE, OUT / "view" / name, 84)
         tw, th = derivative(img, THUMB_EDGE, OUT / "thumb" / name, 78)
 
         entry = {"file": name, "w": tw, "h": th, "_date": date or ""}

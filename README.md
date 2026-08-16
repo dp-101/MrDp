@@ -16,8 +16,8 @@ _ds/nocturne-…  the design system: tokens, ramps and component classes
   readme.md       how the system is meant to be used
 assets/photos/  generated — the gallery's web copies and its index
   thumb/          520px, for the grid
-  view/           1600px, for the full view
-  index.json      each photo's capture date and dominant colour
+  view/           2400px, for the full view and its zoom
+  index.json      each photo's timeline position and dominant colour
 tools/          the two build scripts (Python + Pillow)
 src/            the design-tool source this site was ported from
 dist/artifact.html   generated single-file copy — do not edit by hand
@@ -71,7 +71,13 @@ timeline position, derivatives are named from a hash of the original rather than
 from the camera's dated filename, and re-encoding drops the EXIF.
 
 Originals stay in `gal/`, which is gitignored: 86 phone photographs are 284 MB, and
-the committed web copies are 21 MB.
+the committed web copies are 45 MB.
+
+The grid holds its photographs back until the card has finished opening — laying
+out and decoding 86 of them mid-animation is what made the expansion stutter.
+They wait at the middle of the card's bottom edge and fan out from there, and the
+thumbnails are warmed on idle from the home screen so opening is a layout, not a
+download.
 
 ## Editing
 
@@ -88,6 +94,6 @@ the committed web copies are 21 MB.
   replace them.
 - `dist/artifact.html` is a preview build for hosts that block external requests: it
   carries the stylesheet and all 86 thumbnails inline, so its full view shows the
-  520px copy rather than the 1600px one.
+  520px copy rather than the 2400px one, and zooming it will look soft.
 - `src/` is kept so the original component still opens in the design tool; it is not
   served and nothing on the live site depends on it.
