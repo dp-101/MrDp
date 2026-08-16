@@ -32,9 +32,11 @@
     --rule:        rgba(233, 233, 237, .10);
     --font-display: "Sora", "Inter", system-ui, sans-serif;
 
-    /* How a card opens: barely moving at first, steep through the middle,
-       then a long settle onto its final size. Fitted to the drawn curve. */
-    --card-ease: cubic-bezier(.82, .52, .28, .96);
+    /* How a card opens and closes: a short wind-up, a hard climb, then most
+       of the run spent easing onto its final size. Fitted to the drawn
+       speed-over-time curve; the monotonic fit is used over the marginally
+       closer one, which overshot the target size by 1% and sprang back. */
+    --card-ease: cubic-bezier(.46, .59, 0, 1);
 
     /* Open geometry of the expanding panel — remapped per breakpoint.
        The title sits in its own strip above the panel, so --titlebar-top
@@ -44,7 +46,6 @@
     --panel-left: 4vw;
     --panel-w: 92vw;
     --panel-h: 79vh;
-    --socials-bottom: 3.5vh;
   }
 
   html { scrollbar-color: var(--color-neutral-800) transparent; scrollbar-width: thin; }
@@ -79,10 +80,14 @@
                 filter .35s ease, opacity .5s ease;
   }
   .torch:hover { color: var(--color-accent-100); border-color: rgba(145,132,217,.55); background: rgba(145,132,217,.12); }
+  /* Lit when the glow is on, dark when it is off — the beam is the tell. */
+  .torch .beam { opacity: 0; transition: opacity .35s ease; }
   .torch[aria-pressed="true"] {
-    color: var(--color-accent-200); border-color: rgba(145,132,217,.40);
-    filter: drop-shadow(0 0 10px rgba(196,186,255,.75));
+    color: #fff6c7; border-color: rgba(196,186,255,.45);
+    background: rgba(145,132,217,.10);
+    filter: drop-shadow(0 0 5px rgba(255,246,199,.9)) drop-shadow(0 0 14px rgba(196,186,255,.55));
   }
+  .torch[aria-pressed="true"] .beam { opacity: 1; }
   .page[data-open="true"] .torch { opacity: 0; pointer-events: none; }
   @media (pointer: coarse) { .torch { display: none; } }
   .top-bloom {
@@ -161,15 +166,14 @@
     color: var(--color-neutral-400); text-wrap: pretty;
     transition: opacity .35s ease;
   }
-  /* An open panel is the whole page — the bio steps out, and the socials
-     drop to the bottom band to clear the taller panel. */
-  .page[data-open="true"] .bio { opacity: 0; visibility: hidden; }
-  .socials { display: flex; align-items: center; gap: var(--space-4); }
-  .page[data-open="true"] .socials {
-    position: fixed; left: 0; right: 0; bottom: var(--socials-bottom);
-    justify-content: center; animation: settle .45s ease both;
+  /* An open panel is the whole page: the bio and the contact row both step
+     out, so nothing of the home screen competes with what is open. */
+  .page[data-open="true"] .bio,
+  .page[data-open="true"] .socials { opacity: 0; visibility: hidden; pointer-events: none; }
+  .socials {
+    display: flex; align-items: center; gap: var(--space-4);
+    transition: opacity .35s ease;
   }
-  @keyframes settle { from { opacity: 0; } to { opacity: 1; } }
   .socials a {
     display: flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; border-radius: var(--radius-md); color: var(--color-neutral-400);
@@ -197,7 +201,8 @@
   .panel[data-state="to"] {
     top: var(--panel-top); left: var(--panel-left);
     width: var(--panel-w); height: var(--panel-h);
-    opacity: 1; background: var(--panel);
+    /* --tint is set from script when a colour is picked on the wheel. */
+    opacity: 1; background: var(--tint, var(--panel));
   }
   .panel[hidden] { display: none; }
 
@@ -266,7 +271,7 @@
     position: sticky; top: 0; z-index: 3;
     display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
     padding-bottom: var(--space-4); margin-bottom: var(--space-2);
-    background: linear-gradient(var(--panel) 78%, transparent);
+    background: linear-gradient(var(--tint, var(--panel)) 78%, transparent);
   }
   .gal-bar::before { content: ""; }
   .gal-controls { display: flex; align-items: center; gap: var(--space-4); }
@@ -379,7 +384,7 @@
   @media (max-width: 860px) {
     :root {
       --titlebar-top: 2vh; --panel-top: 10vh; --panel-left: 3vw;
-      --panel-w: 94vw; --panel-h: 80dvh; --socials-bottom: 3vh;
+      --panel-w: 94vw; --panel-h: 80dvh;
     }
     .home { grid-template-rows: auto auto auto; row-gap: var(--space-8); padding-bottom: var(--space-8); }
     .hero { padding-top: 12vh; }
@@ -429,7 +434,7 @@
          stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
       <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
-      <path d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
+      <path class="beam" d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
     </svg>
   </button>
 
@@ -765,6 +770,7 @@
       bar.style.transform = '';
       panel.style.removeProperty('--edge');
       panel.style.removeProperty('--edge-glow');
+      panel.style.removeProperty('--tint');
     }, reduced.matches ? 0 : 720);
   }
 
@@ -927,13 +933,17 @@
       : '<b>All</b><span>' + photos.length + ' photos</span>';
   }
 
-  /* The open card's edge takes the picked colour, so the frame around the
-     photographs agrees with what is inside it. */
+  /* The open card takes the picked colour — its edge, its glow and its own
+     ground — so the frame around the photographs agrees with what is in it. */
+  var PANEL_RGB = [47, 50, 72];   // --panel, the untinted ground
+  var TINT = 0.22;                // how far the ground moves toward the pick
+
   function paintEdge() {
     var panel = document.getElementById('panel');
     if (!picked) {
-      panel.style.removeProperty('--edge');
-      panel.style.removeProperty('--edge-glow');
+      ['--edge', '--edge-glow', '--tint'].forEach(function (p) {
+        panel.style.removeProperty(p);
+      });
       return;
     }
     var hex = SWATCH[picked];
@@ -943,10 +953,18 @@
     // the ground, so lift the darkest swatches until the frame still reads.
     var lum = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
     var lift = lum < 80 ? (80 - lum) / 80 * 0.55 : 0;
-    var edge = rgb.map(function (c) { return Math.round(c + (210 - c) * lift); }).join(',');
+    var lifted = rgb.map(function (c) { return Math.round(c + (210 - c) * lift); });
+    var edge = lifted.join(',');
+
+    // The ground only leans toward the colour: the photographs and the type
+    // on top of it still have to hold.
+    var tint = PANEL_RGB.map(function (c, i) {
+      return Math.round(c + (lifted[i] - c) * TINT);
+    }).join(',');
 
     panel.style.setProperty('--edge', 'rgba(' + edge + ',.75)');
     panel.style.setProperty('--edge-glow', 'rgba(' + edge + ',.40)');
+    panel.style.setProperty('--tint', 'rgb(' + tint + ')');
   }
 
   function pick(name) {
