@@ -45,7 +45,9 @@ which `file://` blocks.
   The arrow flips between oldest and newest first.
 - **Colour** — by dominant colour, placed around a wheel that runs the rainbow, then
   white, grey and black closing the circle back into red. The arrow reverses it, and
-  picking a wedge shows only that colour.
+  picking a wedge shows only that colour. In colour mode the wheel is drawn as a ring
+  around the title stack, with the name, the two tabs and the reverse control sitting
+  in the middle of it.
 
 A photograph's colour is whichever hue holds the majority of its frame, weighted so
 that washed-out and near-black pixels do not vote. Photographs with no real hue —
@@ -72,6 +74,10 @@ from the camera's dated filename, and re-encoding drops the EXIF.
 
 Originals stay in `gal/`, which is gitignored: 86 phone photographs are 284 MB, and
 the committed web copies are 45 MB.
+
+Selecting a photograph opens it as a card, with its neighbours behind it to either
+side, dimmed and set back; clicking one brings it forward instead of using arrows.
+The front card zooms to 6x.
 
 The grid holds its photographs back until the card has finished opening — laying
 out and decoding 86 of them mid-animation is what made the expansion stutter.
