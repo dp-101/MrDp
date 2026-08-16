@@ -47,13 +47,7 @@ which `file://` blocks.
   white, grey and black closing the circle back into red. The arrow reverses it, and
   picking a wedge shows only that colour. In colour mode the wheel is drawn as a ring
   around the title stack, with the name, the two tabs and the reverse control sitting
-  in the middle of it, and its lower arc crossing the top edge of the panel.
-
-The panel is placed off the measured height of the title strip (`--stack`), not off
-a number kept in step by hand, so a change to the type or the controls moves it on
-its own. The grid is `overflow: clip`: its tiles are absolutely positioned, and a
-filtered-out tile still counts toward the panel's scrolling area at opacity 0 —
-which is how two photographs came to scroll like eighty-six.
+  in the middle of it.
 
 A photograph's colour is whichever hue holds the majority of its frame, weighted so
 that washed-out and near-black pixels do not vote. Photographs with no real hue —
@@ -81,18 +75,9 @@ from the camera's dated filename, and re-encoding drops the EXIF.
 Originals stay in `gal/`, which is gitignored: 86 phone photographs are 284 MB, and
 the committed web copies are 45 MB.
 
-Selecting a photograph opens it on a turntable: the neighbours stand around the
-same circle, angled away, dimmed and set back. Clicking one turns the ring until
-it faces you; so does scrolling, or dragging the ring with the pointer. The front
-card zooms to 6x — with the buttons, or with the wheel once you are zoomed in.
-
-The geometry is the `circular-gallery` React component's, in plain CSS and JS: one
-perspective, each card placed by `rotateY()` + `translateZ()`, its light falling
-off with its angle. Two things are deliberately not carried over. Its idle
-auto-rotation is gone — a photograph that drifts while you look at it fights you.
-And each card is stepped back along the camera's axis on top of the circle,
-because two cards on one circle cannot overlap on screen without their planes
-crossing, which put the near edge of the neighbour over the photograph in front.
+Selecting a photograph opens it as a card, with its neighbours behind it to either
+side, dimmed and set back; clicking one brings it forward instead of using arrows.
+The front card zooms to 6x.
 
 The grid holds its photographs back until the card has finished opening — laying
 out and decoding 86 of them mid-animation is what made the expansion stutter.
