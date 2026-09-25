@@ -1,7 +1,7 @@
 """Generate dist/artifact.html — the single-file copy of the site.
 
 The Artifact host blocks every external request, so this build folds in what
-index.html would otherwise fetch: the Nocturne stylesheet, and the gallery's
+index.html would otherwise fetch: the Soft stylesheet, and the gallery's
 index plus its thumbnails as data URIs. The web fonts are dropped; the font
 stacks already fall back to system-ui.
 
@@ -20,7 +20,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PHOTOS = ROOT / "assets/photos"
 LIMIT_MB = 16
-STYLESHEET = '<link rel="stylesheet" href="_ds/nocturne-80cf7938-a722-4536-9a1f-d808b619fe64/styles.css">'
+STYLESHEET = '<link rel="stylesheet" href="_ds/soft/styles.css">'
 
 
 def inline_photos():
@@ -35,12 +35,11 @@ def inline_photos():
 def main():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
 
-    css = (ROOT / "_ds/nocturne-80cf7938-a722-4536-9a1f-d808b619fe64/styles.css").read_text(encoding="utf-8")
-    css = re.sub(r"@import url\([^)]*\);\s*", "", css, count=1)   # the fonts it pulls
+    css = (ROOT / "_ds/soft/styles.css").read_text(encoding="utf-8")
     if STYLESHEET not in html:
         raise SystemExit("index.html no longer links the stylesheet the same way")
     html = html.replace(STYLESHEET, "<style>\n"
-                        "/* Nocturne, inlined — generated from _ds/.../styles.css. Do not edit here. */\n"
+                        "/* Soft, inlined — generated from _ds/.../styles.css. Do not edit here. */\n"
                         + css + "\n</style>")
 
     html = re.sub(r'\s*<link rel="preconnect" href="https://fonts\.[^"]*"[^>]*>', "", html)

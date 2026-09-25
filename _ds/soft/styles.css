@@ -1,0 +1,81 @@
+/* Soft — design-system tokens and base. A light, front-lit interface where
+   every surface is made of the ground itself: raised by a pair of shadows
+   (a highlight up and to the left, a shade down and to the right), or
+   pressed into it by the same pair turned inward. See readme.md. */
+
+/* The ground and the accent are registered so they can be animated: the
+   whole environment re-tints by moving these two values, and everything
+   derived from them — highlights, shades, gradients, ink — follows. */
+@property --ground { syntax: '<color>'; inherits: true; initial-value: #e9eaee; }
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #3b7cf2; }
+
+:root {
+  --ground: #e9eaee;
+  --accent: #3b7cf2;
+
+  /* Light and shade — mixed from the ground, never fixed. */
+  --hi:   color-mix(in oklab, var(--ground), #fff 78%);
+  --lo:   color-mix(in oklab, var(--ground) 72%, #262b40);
+  --lo-2: color-mix(in oklab, var(--ground) 86%, #262b40);   /* hairlines, wells */
+  --face: linear-gradient(145deg,
+            color-mix(in oklab, var(--ground), #fff 42%),
+            var(--ground) 70%);
+  --face-sunk: color-mix(in oklab, var(--ground) 95.5%, #262b40);
+
+  /* Ink — near-black, leaning a touch toward the ground so it sits in it. */
+  --ink:   color-mix(in oklab, var(--ground) 8%, #15161b);
+  --ink-2: color-mix(in oklab, var(--ground) 30%, #2a2c34);
+  --muted: color-mix(in oklab, var(--ground) 42%, #555966);
+  --faint: color-mix(in oklab, var(--ground) 55%, #6f7380);
+
+  /* Elevation — raised steps and their pressed counterparts. */
+  --raise-sm: -3px -3px 7px var(--hi), 3px 4px 9px var(--lo);
+  --raise-md: -7px -7px 16px var(--hi), 8px 10px 22px var(--lo);
+  --raise-lg: -12px -12px 30px var(--hi), 16px 20px 44px var(--lo);
+  --press:    inset 3px 3px 7px var(--lo), inset -3px -3px 7px var(--hi);
+  --press-sm: inset 2px 2px 4px var(--lo), inset -2px -2px 4px var(--hi);
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 30px;
+  --radius-pill: 999px;
+
+  /* Motion — one soft ease for state changes, and the time a re-tint takes. */
+  --ease-soft: cubic-bezier(.22, .8, .26, 1);
+  --retint: 1s;
+
+  transition: --ground var(--retint) ease, --accent var(--retint) ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--ground); }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--font); font-size: 15px; line-height: 1.55; font-weight: 400;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin: 0; font-family: var(--font); font-weight: 700;
+  line-height: 1.12; letter-spacing: -.02em; color: var(--ink);
+}
+p { margin: 0; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+
+/* Focus is always visible: an accent ring, clear of the raised edge. */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+
+/* The two surface primitives, for anything that is simply up or down. */
+.raised  { background: var(--face); box-shadow: var(--raise-md); }
+.pressed { background: var(--ground); box-shadow: var(--press); }
