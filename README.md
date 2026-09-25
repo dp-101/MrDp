@@ -45,11 +45,12 @@ which `file://` blocks.
 
 - **Timeline** — by the capture date read out of each photo's EXIF at build time.
   The arrow flips between oldest and newest first.
-- **Colour** — by dominant colour, placed around a wheel that runs the rainbow, then
-  white, grey and black closing the circle back into red. The arrow reverses it, and
-  picking a wedge shows only that colour. In colour mode the wheel is drawn as a ring
-  around the title stack, with the name, the two tabs and the reverse control sitting
-  in the middle of it.
+- **Colour**: by dominant colour, around a wheel that runs the rainbow, then
+  white, grey and black closing the circle back into red. In colour mode a dial
+  opens beside the title. Drag or flick it round, scroll over it, use the arrow
+  keys, or tap a wedge. Whichever colour stops at the pointer at the bottom is the
+  one shown, and the whole page re-tints toward it. Tapping the middle shows every
+  colour again. The arrow button reverses the order.
 
 A photograph's colour is whichever hue holds the majority of its frame, weighted so
 that washed-out and near-black pixels do not vote. Photographs with no real hue —
@@ -78,8 +79,14 @@ Originals stay in `gal/`, which is gitignored: 86 phone photographs are 284 MB, 
 the committed web copies are 45 MB.
 
 Selecting a photograph opens it as a card, with its neighbours behind it to either
-side, dimmed and set back; clicking one brings it forward instead of using arrows.
-The front card zooms to 6x.
+side, faded and set back. To move through them, swipe (the deck follows your
+finger and settles on release; a hard flick can skip two), swipe sideways on a
+trackpad, use the arrow keys, or click a neighbour. The front card zooms to 6x.
+
+The page has a light and a dark mode, switched top right. The choice is
+remembered; until one is made, the system setting decides. Everything that moves
+uses one curve, `--ease-out-heavy` in `_ds/soft/styles.css`:
+`cubic-bezier(.1, .9, .2, 1)`, which starts fast and settles slowly with no bounce.
 
 The grid holds its photographs back until the card has finished opening — laying
 out and decoding 86 of them mid-animation is what made the expansion stutter.

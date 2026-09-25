@@ -1,32 +1,61 @@
-/* Soft — design-system tokens and base. A light, front-lit interface where
-   every surface is made of the ground itself: raised by a pair of shadows
-   (a highlight up and to the left, a shade down and to the right), or
-   pressed into it by the same pair turned inward. See readme.md. */
+/* Soft — design-system tokens and base. A front-lit interface where every
+   surface is made of the ground itself: raised by a pair of shadows (a
+   highlight up and to the left, a shade down and to the right), or pressed
+   into it by the same pair turned inward. Light and dark. See readme.md. */
 
-/* The ground and the accent are registered so they can be animated: the
-   whole environment re-tints by moving these two values, and everything
-   derived from them — highlights, shades, gradients, ink — follows. */
-@property --ground { syntax: '<color>'; inherits: true; initial-value: #e9eaee; }
-@property --accent { syntax: '<color>'; inherits: true; initial-value: #3b7cf2; }
+/* Every colour that differs between the modes, or that the colour pick
+   moves, is registered — so the page can ease between light and dark, and
+   between tints, instead of snapping. Everything else is mixed from these. */
+@property --ground     { syntax: '<color>'; inherits: true; initial-value: #e9eaee; }
+@property --accent     { syntax: '<color>'; inherits: true; initial-value: #3b7cf2; }
+@property --hi-src     { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --lo-src     { syntax: '<color>'; inherits: true; initial-value: #262b40; }
+@property --ink-src    { syntax: '<color>'; inherits: true; initial-value: #15161b; }
+@property --ink2-src   { syntax: '<color>'; inherits: true; initial-value: #2a2c34; }
+@property --muted-src  { syntax: '<color>'; inherits: true; initial-value: #555966; }
+@property --faint-src  { syntax: '<color>'; inherits: true; initial-value: #6f7380; }
+@property --glow-src   { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
 
 :root {
   --ground: #e9eaee;
   --accent: #3b7cf2;
+  --hi-src: #ffffff;       /* what light mixes toward */
+  --lo-src: #262b40;       /* what shade mixes toward */
+  --ink-src: #15161b;
+  --ink2-src: #2a2c34;
+  --muted-src: #555966;
+  --faint-src: #6f7380;
+  --glow-src: #ffffff;     /* the torch */
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ground: #25272f;
+  --accent: #6d9bff;
+  --hi-src: #4b4f5e;
+  --lo-src: #07080b;
+  --ink-src: #eef0f5;
+  --ink2-src: #d3d6df;
+  --muted-src: #b9bdc9;
+  --faint-src: #9da2b0;
+  --glow-src: #8f9ae0;
+  color-scheme: dark;
+}
 
+:root {
   /* Light and shade — mixed from the ground, never fixed. */
-  --hi:   color-mix(in oklab, var(--ground), #fff 78%);
-  --lo:   color-mix(in oklab, var(--ground) 72%, #262b40);
-  --lo-2: color-mix(in oklab, var(--ground) 86%, #262b40);   /* hairlines, wells */
+  --hi:   color-mix(in oklab, var(--ground), var(--hi-src) 78%);
+  --lo:   color-mix(in oklab, var(--ground) 70%, var(--lo-src));
+  --lo-2: color-mix(in oklab, var(--ground) 86%, var(--lo-src));   /* hairlines, wells */
   --face: linear-gradient(145deg,
-            color-mix(in oklab, var(--ground), #fff 42%),
+            color-mix(in oklab, var(--ground), var(--hi-src) 42%),
             var(--ground) 70%);
-  --face-sunk: color-mix(in oklab, var(--ground) 95.5%, #262b40);
+  --face-sunk: color-mix(in oklab, var(--ground) 95.5%, var(--lo-src));
 
-  /* Ink — near-black, leaning a touch toward the ground so it sits in it. */
-  --ink:   color-mix(in oklab, var(--ground) 8%, #15161b);
-  --ink-2: color-mix(in oklab, var(--ground) 30%, #2a2c34);
-  --muted: color-mix(in oklab, var(--ground) 42%, #555966);
-  --faint: color-mix(in oklab, var(--ground) 55%, #6f7380);
+  /* Ink — leaning a touch toward the ground so it sits in it. */
+  --ink:   color-mix(in oklab, var(--ground) 8%, var(--ink-src));
+  --ink-2: color-mix(in oklab, var(--ground) 30%, var(--ink2-src));
+  --muted: color-mix(in oklab, var(--ground) 42%, var(--muted-src));
+  --faint: color-mix(in oklab, var(--ground) 55%, var(--faint-src));
 
   /* Elevation — raised steps and their pressed counterparts. */
   --raise-sm: -3px -3px 7px var(--hi), 3px 4px 9px var(--lo);
@@ -50,11 +79,19 @@
   --radius-xl: 30px;
   --radius-pill: 999px;
 
-  /* Motion — one soft ease for state changes, and the time a re-tint takes. */
-  --ease-soft: cubic-bezier(.22, .8, .26, 1);
+  /* Motion — one curve for everything that moves: a heavy (quartic-like)
+     ease-out, with a snappy start and a buttery, zero-velocity stop. The
+     soft ease is the same curve, kept as a name for small state changes.
+     --retint is how long a re-tint or a change of mode takes. */
+  --ease-out-heavy: cubic-bezier(.1, .9, .2, 1);
+  --ease-soft: var(--ease-out-heavy);
   --retint: 1s;
 
-  transition: --ground var(--retint) ease, --accent var(--retint) ease;
+  transition: --ground var(--retint) var(--ease-out-heavy), --accent var(--retint) var(--ease-out-heavy),
+              --hi-src var(--retint) var(--ease-out-heavy), --lo-src var(--retint) var(--ease-out-heavy),
+              --ink-src var(--retint) var(--ease-out-heavy), --ink2-src var(--retint) var(--ease-out-heavy),
+              --muted-src var(--retint) var(--ease-out-heavy), --faint-src var(--retint) var(--ease-out-heavy),
+              --glow-src var(--retint) var(--ease-out-heavy);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
