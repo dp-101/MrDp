@@ -1,8 +1,9 @@
 # MrDp
 
 A one-screen portfolio — Gallery and Work open as an expanding panel over the
-homepage rather than as separate pages. Built on the **Nocturne** design system: a dark
-blue-grey ground, a single blurple accent used as line and glow, and no flat saturated fills.
+homepage rather than as separate pages. Built on the **Soft** design system: a light,
+front-lit ground where every surface is the ground itself, either raised or pressed into it.
+Picking a colour on the gallery wheel re-tints the whole page toward that colour.
 
 **Live:** [dp-101.github.io/MrDp](https://dp-101.github.io/MrDp/)
 
@@ -11,9 +12,10 @@ blue-grey ground, a single blurple accent used as line and glow, and no flat sat
 ```text
 index.html      the site — static HTML, one <style> block, vanilla JS
 .nojekyll       stops GitHub Pages' Jekyll from skipping _ds/ (paths starting with _)
-_ds/nocturne-…  the design system: tokens, ramps and component classes
-  styles.css      the only stylesheet; every color, space and radius comes from here
+_ds/soft/       the design system: tokens, light and shade, base styles
+  styles.css      the only stylesheet; every color, shadow and radius comes from here
   readme.md       how the system is meant to be used
+_ds/nocturne-…  the previous, dark system — kept only for src/
 assets/photos/  generated — the gallery's web copies and its index
   thumb/          520px, for the grid
   view/           2400px, for the full view and its zoom
@@ -87,10 +89,12 @@ download.
 
 ## Editing
 
-- **Colors, spacing, radii, shadows** — change the tokens at the top of
-  `_ds/nocturne-…/styles.css`. Nothing in `index.html` hardcodes a value the tokens
-  already carry, apart from the three local surfaces (`--card`, `--card-hover`,
-  `--panel`) declared at the top of its `<style>` block.
+- **Colors, spacing, radii, shadows**: change the tokens in `_ds/soft/styles.css`.
+  Every surface, shadow and text colour is mixed from `--ground` and `--accent`,
+  so the colour pick can re-tint everything at once. Don't hard-code a colour in
+  `index.html`, or it won't change with the rest.
+- **The colour pick**: how far the ground leans toward each colour, and the
+  accent used for each, are `LEAN` and `ACCENT` in the gallery script.
 - **Content** — the Work rows are plain markup inside `#panelBody` in `index.html`.
 - **After changing `index.html`**, run `python tools/build-artifact.py`.
 

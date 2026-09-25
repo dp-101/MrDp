@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MrDp — Maker, researcher, writer</title>
 <meta name="description" content="MrDp — a scrapbook of photographs, mostly shot at night, and the things behind them: printers, boards, models, cuts.">
-<meta name="theme-color" content="#161826">
-<meta name="color-scheme" content="dark">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23161826'/><circle cx='16' cy='16' r='7' fill='%239184d9'/><circle cx='16' cy='16' r='3' fill='%23f5f4ff'/></svg>">
+<meta name="theme-color" content="#e9eaee" id="themeColor">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%23e9eaee'/><circle cx='16' cy='16' r='8' fill='%23f7f8fa' stroke='%23c9ccd6'/><circle cx='16' cy='16' r='3.5' fill='%233b7cf2'/></svg>">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="MrDp — Maker, researcher, writer">
@@ -17,21 +17,15 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="_ds/nocturne-80cf7938-a722-4536-9a1f-d808b619fe64/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_ds/soft/styles.css">
 
 <style>
-  /* ─── Local surfaces ─────────────────────────────────────────────────────
-     Three grounds sitting between --color-bg and --color-surface, carried
-     over from the original component. Everything else comes from the
-     Nocturne tokens in the stylesheet above. */
+  /* Everything below takes its colour, light and shade from the Soft tokens
+     in the stylesheet above — surfaces are the ground itself, raised or
+     pressed. Picking a colour on the gallery wheel moves --ground and
+     --accent, and the whole page re-tints with them. */
   :root {
-    --card:        #1d1f2e;
-    --card-hover:  #232532;
-    --panel:       #2f3248;
-    --rule:        rgba(233, 233, 237, .10);
-    --font-display: "Sora", "Inter", system-ui, sans-serif;
-
     /* How a card opens and closes: a short wind-up, a hard climb, then most
        of the run spent easing onto its final size. Fitted to the drawn
        speed-over-time curve; the monotonic fit is used over the marginally
@@ -42,68 +36,71 @@
        above the panel, so --titlebar-top and --panel-top move together —
        and in colour mode the strip has a ring around it to clear as well. */
     --titlebar-top: 3vh;
-    --panel-top: 9vh;
+    --panel-top: 14vh;
     --panel-left: 4vw;
     --panel-w: 92vw;
-    --panel-h: 79vh;
+    --panel-h: 82vh;
     --ring: 340px;        /* the colour ring's outer diameter */
     --ring-hole: 76%;     /* of its radius — the clear middle */
   }
 
   /* Each section makes its own room: Work needs only a title above it, the
      gallery also carries the tabs, and colour mode adds the ring. */
-  .page[data-room="gallery"] { --panel-top: 25vh; --panel-h: 69vh; }
+  .page[data-room="gallery"] { --panel-top: 29vh; --panel-h: 67vh; }
   .page[data-room="gallery"][data-mode="colour"] {
-    --titlebar-top: 11vh; --panel-top: 41vh; --panel-h: 53vh;
+    --titlebar-top: 11vh; --panel-top: 42vh; --panel-h: 54vh;
   }
 
-  html { scrollbar-color: var(--color-neutral-800) transparent; scrollbar-width: thin; }
+  html { scrollbar-color: var(--lo) transparent; scrollbar-width: thin; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--color-neutral-800); border-radius: var(--radius-md); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-neutral-700); }
+  ::-webkit-scrollbar-thumb { background: var(--lo); border-radius: var(--radius-pill); }
 
-  body { margin: 0; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-  a { color: var(--color-accent-300); text-decoration: none; }
-  a:hover { color: var(--color-accent-100); }
+  body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
 
-  .page { position: relative; min-height: 100dvh; background: var(--color-bg); }
+  .page { position: relative; min-height: 100dvh; background: var(--ground); }
 
-  /* ─── Light ──────────────────────────────────────────────────────────── */
-  .cursor-glow {
-    position: fixed; top: 0; left: 0; width: 380px; height: 380px;
-    margin: -190px 0 0 -190px; border-radius: 50%;
-    pointer-events: none; z-index: 0; opacity: 0; transition: opacity .4s ease;
-    background: radial-gradient(circle closest-side, rgba(196,186,255,.40), rgba(145,132,217,.16) 42%, transparent 70%);
-  }
-  .page[data-torch="off"] .cursor-glow { opacity: 0 !important; }
-
-  /* The torch — turns the cursor glow on and off. */
-  .torch {
-    position: fixed; top: 22px; right: 26px; z-index: 36;
-    display: flex; align-items: center; justify-content: center;
-    width: 42px; height: 42px; border-radius: var(--radius-md);
-    background: transparent; border: 1px solid var(--rule);
-    color: var(--color-neutral-600); cursor: pointer;
-    transition: color .35s ease, background .35s ease, border-color .35s ease,
-                filter .35s ease, opacity .5s ease;
-  }
-  .torch:hover { color: var(--color-accent-100); border-color: rgba(145,132,217,.55); background: rgba(145,132,217,.12); }
-  /* Lit when the glow is on, dark when it is off — the beam is the tell. */
-  .torch .beam { opacity: 0; transition: opacity .35s ease; }
-  .torch[aria-pressed="true"] {
-    color: #fff6c7; border-color: rgba(196,186,255,.45);
-    background: rgba(145,132,217,.10);
-    filter: drop-shadow(0 0 5px rgba(255,246,199,.9)) drop-shadow(0 0 14px rgba(196,186,255,.55));
-  }
-  .torch[aria-pressed="true"] .beam { opacity: 1; }
-  .page[data-open="true"] .torch { opacity: 0; pointer-events: none; }
-  @media (pointer: coarse) { .torch { display: none; } }
+  /* ─── Light ────────────────────────────────────────────────────────────
+     A front light, up and to the left — the same one every raised edge
+     assumes — and a soft torch that follows the pointer. */
   .top-bloom {
     position: fixed; inset: 0; pointer-events: none; z-index: 1;
-    background: radial-gradient(120% 80% at 50% -10%, rgba(145,132,217,.10), transparent 60%);
+    background: radial-gradient(90% 70% at 20% -10%, color-mix(in oklab, var(--hi) 80%, transparent), transparent 62%);
   }
+  .cursor-glow {
+    position: fixed; top: 0; left: 0; width: 420px; height: 420px;
+    margin: -210px 0 0 -210px; border-radius: 50%;
+    pointer-events: none; z-index: 0; opacity: 0; transition: opacity .4s ease;
+    background: radial-gradient(circle closest-side,
+      color-mix(in oklab, #fff 75%, transparent),
+      color-mix(in oklab, #fff 22%, transparent) 50%, transparent 72%);
+  }
+  .page[data-torch="off"] .cursor-glow { opacity: 0 !important; }
   .layer { position: relative; z-index: 2; }
+
+  /* The torch — a switch, top right. The knob slides and carries the lamp. */
+  .torch {
+    position: fixed; top: 22px; right: 26px; z-index: 36;
+    width: 62px; height: 34px; padding: 0; border: 0; border-radius: var(--radius-pill);
+    background: var(--ground); box-shadow: var(--press); cursor: pointer;
+    transition: opacity .5s ease, background .5s ease;
+  }
+  .torch-knob {
+    position: absolute; top: 4px; left: 4px; width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: var(--face); box-shadow: var(--raise-sm);
+    color: var(--faint);
+    transition: transform .5s var(--card-ease), color .4s ease;
+  }
+  .torch[aria-checked="true"] {
+    background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 34%, var(--ground)), var(--ground));
+  }
+  .torch[aria-checked="true"] .torch-knob { transform: translateX(28px); color: var(--accent); }
+  .torch .beam { opacity: 0; transition: opacity .35s ease; }
+  .torch[aria-checked="true"] .beam { opacity: 1; }
+  .page[data-open="true"] .torch { opacity: 0; pointer-events: none; }
+  @media (pointer: coarse) { .torch { display: none; } }
 
   /* ─── Home ───────────────────────────────────────────────────────────── */
   .home {
@@ -111,73 +108,82 @@
     align-items: center; width: 100%; margin: 0; padding: 0;
   }
 
-  .hero { display: flex; align-items: center; justify-content: center; padding: var(--space-8) var(--space-6); }
-  .hero-name {
-    margin: 0; font-family: var(--font-display);
-    /* Sized off the viewport height, as designed — but capped against the
-       width too, or it overflows a tall narrow phone. */
-    font-size: clamp(44px, min(11vh, 17vw), 116px); line-height: 1; font-weight: 700;
-    letter-spacing: -.035em; color: var(--color-accent-100);
-    text-shadow: 0 0 14px rgba(255,246,199,.35), 0 0 60px rgba(145,132,217,.80);
-    position: relative; z-index: 40; padding: 0 26px; border-radius: var(--radius-md);
-    background: transparent;
+  .hero {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    gap: var(--space-2); align-self: end;
+    padding: var(--space-8) var(--space-6) 56px; text-align: center;
     transition: transform .7s var(--card-ease), opacity .5s ease;
   }
+  .hero-name {
+    font-size: clamp(48px, min(11vh, 17vw), 112px); line-height: 1; font-weight: 800;
+    letter-spacing: -.045em; color: var(--ink);
+    /* Pressed lightly into the ground: a highlight under, a shade over. */
+    text-shadow: 1px 1px 1px var(--hi), -1px -1px 1px color-mix(in oklab, var(--lo) 40%, transparent);
+    position: relative; z-index: 40;
+  }
+  .hero-sub { font-size: clamp(15px, 2.2vh, 19px); color: var(--muted); letter-spacing: -.005em; }
   /* The open section's title takes the top strip, so the wordmark clears
      out of it rather than shrinking into the same slot. */
-  .page[data-open="true"] .hero-name {
-    transform: scale(.94); opacity: 0; pointer-events: none;
-  }
+  .page[data-open="true"] .hero { transform: scale(.94) translateY(-10px); opacity: 0; pointer-events: none; }
 
   .rooms {
-    width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0;
-    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    width: 100%; max-width: 900px; margin: 0 auto; padding: 0 var(--space-6);
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px;
     transition: opacity .45s ease;
   }
   /* The cards step aside with the rest of the home screen. On a wide screen
      the panel covers them anyway; on a narrow one they would otherwise show
      under the title strip and read as a second, stale heading. */
   .page[data-open="true"] .rooms { opacity: 0; pointer-events: none; }
+
+  /* A card: a head with its name, a pressed well holding the line, and a
+     sunk foot. The whole card presses in when it is clicked. */
   .room {
     position: relative; overflow: hidden;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: var(--space-3); text-align: center; padding: 34px 40px;
-    background: var(--card); border: none; border-left: 1px solid var(--rule);
+    display: flex; flex-direction: column; align-items: stretch;
+    padding: 0; text-align: left; border: 0; border-radius: var(--radius-lg);
+    background: var(--face); box-shadow: var(--raise-md);
     font-family: inherit; cursor: pointer;
-    /* Hover stays on a quick ease-out — the drawn curve's slow start would
-       read as lag on a pointer that is already there. */
-    transition: background .4s ease, box-shadow .45s ease, transform .45s cubic-bezier(.2,.7,.2,1);
+    transition: box-shadow .45s var(--ease-soft), transform .45s var(--ease-soft);
   }
-  .room:first-child { border-left: none; }
-  .room:hover {
-    background: var(--card-hover);
-    box-shadow: 0 0 0 1px rgba(145,132,217,.45), 0 22px 60px rgba(0,0,0,.6);
-    transform: scale(1.045); z-index: 5;
-  }
+  .room:hover { box-shadow: var(--raise-lg); transform: translateY(-4px); }
+  .room:active { box-shadow: var(--raise-sm); transform: translateY(0) scale(.985); transition-duration: .15s; }
   .room-glow {
-    position: absolute; top: 0; left: 0; width: 260px; height: 260px;
-    margin: -130px 0 0 -130px; border-radius: 50%;
+    position: absolute; top: 0; left: 0; width: 280px; height: 280px;
+    margin: -140px 0 0 -140px; border-radius: 50%;
     pointer-events: none; opacity: 0; transition: opacity .35s ease;
-    background: radial-gradient(circle closest-side, rgba(214,206,255,.55), rgba(145,132,217,.22) 45%, transparent 72%);
+    background: radial-gradient(circle closest-side, color-mix(in oklab, #fff 65%, transparent), transparent 72%);
   }
-  .room-kicker {
-    position: relative; font-size: 11px; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--color-accent-600);
+  .room-head {
+    position: relative; display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 24px 16px;
   }
-  .room-name {
-    position: relative; font-size: 24px; font-weight: 500;
-    color: var(--color-accent-100); text-shadow: 0 0 20px rgba(145,132,217,.45);
+  .room-name { font-size: 21px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); }
+  .room-head svg { color: var(--muted); transition: transform .45s var(--ease-soft), color .3s ease; }
+  .room:hover .room-head svg { transform: translateX(3px); color: var(--accent); }
+  .room-well {
+    position: relative; display: flex; align-items: center; gap: var(--space-3);
+    margin: 0 20px 22px; padding: 14px 18px; border-radius: var(--radius-md);
+    background: var(--ground); box-shadow: var(--press);
   }
-  .room-line { position: relative; font-size: 13px; line-height: 1.5; color: var(--color-neutral-500); }
+  .room-line { font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .room-foot {
+    position: relative; display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 24px; background: var(--face-sunk);
+    border-top: 1px solid var(--lo-2);
+  }
+  .room-kicker { font-size: 15px; color: var(--ink-2); }
+  .room-foot svg { color: var(--ink-2); transition: transform .5s var(--card-ease); }
+  .room:hover .room-foot svg { transform: rotate(90deg); }
 
   .footer {
-    position: relative; z-index: 35;
+    position: relative; z-index: 35; align-self: start;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: var(--space-8); text-align: center; padding: var(--space-8) var(--space-6);
+    gap: var(--space-6); text-align: center; padding: 56px var(--space-6) var(--space-8);
   }
   .bio {
-    margin: 0; max-width: 660px; font-size: 16px; line-height: 1.65;
-    color: var(--color-neutral-400); text-wrap: pretty;
+    max-width: 620px; font-size: 16px; line-height: 1.65;
+    color: var(--muted); text-wrap: pretty;
     transition: opacity .35s ease;
   }
   /* An open panel is the whole page: the bio and the contact row both step
@@ -185,38 +191,33 @@
   .page[data-open="true"] .bio,
   .page[data-open="true"] .socials { opacity: 0; visibility: hidden; pointer-events: none; }
   .socials {
-    display: flex; align-items: center; gap: var(--space-4);
+    display: flex; align-items: center; gap: 22px;
     transition: opacity .35s ease;
   }
   .socials a {
     display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; border-radius: var(--radius-md); color: var(--color-neutral-400);
-    transition: color .35s ease, filter .35s ease, background .35s ease;
+    width: 48px; height: 48px; border-radius: 50%; color: var(--ink-2);
+    background: var(--face); box-shadow: var(--raise-sm);
+    transition: color .3s ease, box-shadow .35s var(--ease-soft), transform .35s var(--ease-soft);
   }
-  .socials a:hover {
-    color: var(--color-accent-100); background: rgba(145,132,217,.12);
-    filter: drop-shadow(0 0 12px rgba(196,186,255,.85));
-  }
+  .socials a:hover { color: var(--accent); box-shadow: var(--raise-md); transform: translateY(-2px); }
+  .socials a:active { box-shadow: var(--press); transform: none; transition-duration: .12s; }
 
   /* ─── The expanding panel ────────────────────────────────────────────── */
   .scrim { position: fixed; inset: 0; z-index: 29; }
   .panel {
     position: fixed; z-index: 30; display: flex; flex-direction: column; align-items: stretch;
-    padding: 28px 40px; border-radius: var(--radius-lg); overflow: hidden;
-    background: var(--card-hover); opacity: 0;
-    /* The edge takes the accent, or the colour picked on the gallery wheel. */
-    --edge: rgba(145, 132, 217, .55);
-    --edge-glow: rgba(145, 132, 217, .35);
-    box-shadow: 0 0 0 1px var(--edge), 0 0 90px var(--edge-glow), 0 30px 80px rgba(0,0,0,.6);
+    padding: 26px 34px 0; border-radius: var(--radius-xl); overflow: hidden;
+    background: var(--face); opacity: 0;
+    box-shadow: var(--raise-lg);
     transition: top .7s var(--card-ease), left .7s var(--card-ease),
                 width .7s var(--card-ease), height .7s var(--card-ease),
-                opacity .5s ease, background .7s ease, box-shadow .55s ease;
+                opacity .5s ease, border-radius .7s var(--card-ease);
   }
+  .panel[data-state="from"] { border-radius: var(--radius-lg); }
   .panel[data-state="to"] {
     top: var(--panel-top); left: var(--panel-left);
-    width: var(--panel-w); height: var(--panel-h);
-    /* --tint is set from script when a colour is picked on the wheel. */
-    opacity: 1; background: var(--tint, var(--panel));
+    width: var(--panel-w); height: var(--panel-h); opacity: 1;
   }
   .panel[hidden] { display: none; }
 
@@ -229,7 +230,7 @@
     position: fixed; top: var(--titlebar-top); left: 0; right: 0; z-index: 31;
     text-align: center; pointer-events: none; opacity: 0;
     transform-origin: top center;
-    transition: opacity .45s ease, transform .7s var(--card-ease);
+    transition: opacity .45s ease, transform .7s var(--card-ease), top .7s var(--card-ease);
   }
   .panel-titlebar[data-state="to"] { opacity: 1; transform: none; }
   .panel-titlebar[hidden] { display: none; }
@@ -241,47 +242,60 @@
     display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
   }
   .panel-kicker {
-    margin: 0; font-size: 11px; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--color-accent-400);
+    font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent);
   }
-  .panel-title {
-    margin: 0; font-size: 38px; font-weight: 500; letter-spacing: -.02em;
-    color: var(--color-accent-100); text-shadow: 0 0 30px rgba(145,132,217,.55);
-  }
+  .panel-title { font-size: 40px; font-weight: 700; letter-spacing: -.03em; color: var(--ink); }
   /* The heading is a full-width block; the span is the text itself, and the
      flight is measured off that. */
   .panel-title span { display: inline-block; }
   /* With the title lifted out, the panel's own head carries only the close
      control — the body starts directly beneath it. */
-  .panel-head { position: relative; flex: 0 0 auto; height: 40px; }
+  .panel-head { position: relative; flex: 0 0 auto; height: 44px; }
   .panel-close {
     position: absolute; top: 0; right: 0;
-    display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-    background: transparent; border: 1px solid rgba(233,233,237,.16); border-radius: var(--radius-md);
-    color: var(--color-neutral-400); cursor: pointer; transition: color .3s ease, background .3s ease, border-color .3s ease;
+    display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    border: 0; border-radius: 50%; background: var(--face); box-shadow: var(--raise-sm);
+    color: var(--ink-2); cursor: pointer;
+    transition: color .3s ease, box-shadow .35s var(--ease-soft), transform .5s var(--card-ease);
   }
-  .panel-close:hover {
-    border-color: rgba(145,132,217,.55); color: var(--color-accent-100); background: rgba(145,132,217,.12);
-  }
+  .panel-close:hover { color: var(--accent); box-shadow: var(--raise-md); transform: rotate(90deg); }
+  .panel-close:active { box-shadow: var(--press); transition-duration: .12s; }
+  /* Padded, so the raised tiles inside keep their shadows rather than
+     having them clipped by the scrolling edge. */
   .panel-body {
     flex: 1 1 auto; overflow-y: auto; overflow-x: hidden;
-    margin-top: var(--space-4); padding-right: 8px;
+    margin: var(--space-2) -20px 0; padding: 14px 20px 30px;
   }
   .panel-body > [hidden] { display: none; }
 
-  /* ─── Work ───────────────────────────────────────────────────────────── */
+  /* ─── Work ─────────────────────────────────────────────────────────────
+     Raised rows, each with a pressed tag for its field. They rise in one
+     after another once the card has opened. */
   .work-row {
-    display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px;
-    gap: 28px; align-items: start; padding: 19px 0; border-top: 1px solid var(--rule);
+    display: grid; grid-template-columns: 138px minmax(0, 1fr) 150px;
+    gap: 26px; align-items: center; padding: 20px 24px; margin-bottom: 18px;
+    border-radius: var(--radius-lg); background: var(--face); box-shadow: var(--raise-sm);
+    transition: box-shadow .4s var(--ease-soft), transform .4s var(--ease-soft);
+  }
+  .work-row:hover { box-shadow: var(--raise-md); transform: translateY(-2px); }
+  .page[data-open="true"][data-room="work"] .work-row {
+    animation: rise .75s var(--card-ease) both;
+    animation-delay: calc(360ms + var(--i, 0) * 70ms);
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(26px) scale(.97); }
+    to   { opacity: 1; transform: none; }
   }
   .work-field {
-    margin: 0; font-size: 11px; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--color-accent-600);
+    justify-self: start; padding: 7px 13px; border-radius: var(--radius-pill);
+    background: var(--ground); box-shadow: var(--press-sm);
+    font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: color-mix(in oklab, var(--accent) 75%, var(--ink));
   }
-  .work-title { margin: 0 0 var(--space-2); font-size: 20px; font-weight: 500; color: var(--color-accent-100); }
-  .work-line { margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-500); }
-  .work-meta { margin: 0; font-size: 12px; color: var(--color-neutral-600); text-align: right; }
-
+  .work-title { margin: 0 0 var(--space-1); font-size: 19px; font-weight: 600; letter-spacing: -.015em; }
+  .work-line { font-size: 14px; line-height: 1.6; color: var(--muted); }
+  .work-meta { font-size: 12px; color: var(--faint); text-align: right; line-height: 1.6; }
 
   /* ─── Gallery ──────────────────────────────────────────────────────────
      Two orders over the same photographs: when each was taken, and where
@@ -292,51 +306,71 @@
     pointer-events: auto;
   }
   .gal-controls[hidden] { display: none; }
+
+  /* The tabs: a pressed track with a raised thumb that slides to the pick. */
   .seg {
-    display: flex; border: 1px solid var(--rule); border-radius: var(--radius-md);
-    overflow: hidden; background: rgba(22,24,38,.55); backdrop-filter: blur(6px);
+    position: relative; display: grid; grid-template-columns: 1fr 1fr;
+    padding: 4px; border-radius: var(--radius-pill);
+    background: var(--ground); box-shadow: var(--press);
   }
+  .seg-thumb {
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
+    border-radius: var(--radius-pill); background: var(--face); box-shadow: var(--raise-sm);
+    transition: transform .55s var(--card-ease);
+  }
+  .seg:has([data-mode="colour"][aria-selected="true"]) .seg-thumb { transform: translateX(100%); }
   .seg button {
-    padding: 7px 15px; font: inherit; font-size: 13px; cursor: pointer;
-    background: transparent; border: 0; color: var(--color-neutral-400);
-    transition: background .3s ease, color .3s ease;
+    position: relative; z-index: 1; min-width: 96px;
+    padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+    background: transparent; border: 0; border-radius: var(--radius-pill);
+    color: var(--muted); transition: color .35s ease;
   }
-  .seg button:hover { background: rgba(145,132,217,.10); color: var(--color-accent-100); }
-  .seg button[aria-selected="true"] { background: rgba(145,132,217,.20); color: var(--color-accent-100); }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-selected="true"] { color: var(--ink); }
 
   .gal-reverse {
     display: flex; align-items: center; gap: var(--space-2);
-    padding: 6px 12px 6px 9px; font: inherit; font-size: 12px; cursor: pointer;
-    background: rgba(22,24,38,.55); backdrop-filter: blur(6px);
-    border: 1px solid var(--rule); border-radius: var(--radius-md);
-    color: var(--color-neutral-400);
-    transition: background .3s ease, color .3s ease, border-color .3s ease;
+    padding: 8px 16px 8px 13px; font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 0; border-radius: var(--radius-pill);
+    background: var(--face); box-shadow: var(--raise-sm); color: var(--ink-2);
+    transition: color .3s ease, box-shadow .35s var(--ease-soft);
   }
-  .gal-reverse:hover {
-    border-color: rgba(145,132,217,.55); color: var(--color-accent-100); background: rgba(145,132,217,.12);
-  }
-  .gal-reverse svg { transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+  .gal-reverse:hover { color: var(--accent); box-shadow: var(--raise-md); }
+  .gal-reverse:active { box-shadow: var(--press); transition-duration: .12s; }
+  .gal-reverse svg { transition: transform .5s var(--card-ease); }
   .gal-reverse[data-dir="desc"] svg { transform: rotate(180deg); }
-  .gal-count { margin: 0; font-size: 11px; color: var(--color-neutral-600); }
+  .gal-count { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
 
   /* ─── The colour wheel ──────────────────────────────────────────────────
      In colour mode the wheel is drawn as a ring around the whole title
      stack: the kicker, the name, the two tabs and the reverse control all
-     sit in the hole in the middle of it. */
+     sit in the hole in the middle of it. It sits on a raised dial, with a
+     raised plateau in its middle, and turns into place as it appears. */
   .wheel {
     position: absolute; top: 50%; left: 50%;
     width: var(--ring); height: var(--ring);
     margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
-    pointer-events: auto;
+    pointer-events: none; opacity: 0; transform: scale(.55) rotate(-70deg);
+    transition: opacity .45s ease, transform .9s var(--card-ease);
   }
-  .wheel[hidden] { display: none; }
+  .page[data-room="gallery"][data-mode="colour"] .wheel {
+    pointer-events: auto; opacity: 1; transform: none;
+  }
+  .wheel::before, .wheel::after {
+    content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+  }
+  .wheel::before { inset: -10px; background: var(--face); box-shadow: var(--raise-lg); z-index: 0; }
+  .wheel::after {
+    inset: calc(var(--ring) * .135); background: var(--face);
+    box-shadow: var(--raise-sm); z-index: 2;
+  }
   /* The ring itself: the rainbow, then white, grey and black closing the
      circle back into red — every neighbour blended into the next.
      Each colour peaks at the CENTRE of its wedge, half a segment (16.36deg)
      past the wedge's leading edge, so the band and the selectable wedge
      over it line up. The stop at 0/360 is the black-to-red midpoint. */
   .wheel-ring {
-    position: absolute; inset: 0; border-radius: 50%;
+    position: absolute; inset: 0; z-index: 1; border-radius: 50%;
     background: conic-gradient(from 0deg,
       #7b332b 0deg, #e0503a 16.36deg, #e08b3a 49.09deg, #e0c93a 81.82deg,
       #6fbf50 114.55deg, #45c0b8 147.27deg, #4a86e0 180deg, #8a6fd8 212.73deg,
@@ -345,37 +379,42 @@
     /* The hole is --ring-hole of the radius, sized to clear the stack. */
     -webkit-mask: radial-gradient(closest-side, transparent var(--ring-hole), #000 calc(var(--ring-hole) + 1%));
     mask: radial-gradient(closest-side, transparent var(--ring-hole), #000 calc(var(--ring-hole) + 1%));
-    transition: opacity .35s ease;
-    filter: drop-shadow(0 0 24px rgba(0,0,0,.55));
+    transition: opacity .5s ease, filter .5s ease;
   }
-  .wheel[data-picked] .wheel-ring { opacity: .3; }
-  .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wheel path { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 1.2; }
-  .wheel path:hover { fill: rgba(245,244,255,.16); }
-  .wheel path:focus-visible { outline: none; stroke: var(--color-accent-100); }
-  .wheel path[data-on="1"] { fill: rgba(245,244,255,.10); stroke: var(--color-accent-100); }
+  .wheel[data-picked] .wheel-ring { opacity: .35; filter: saturate(.6); }
+  .wheel svg { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; }
+  .wheel path {
+    cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 1.2;
+    transition: fill .35s ease, stroke .35s ease;
+  }
+  .wheel path:hover { fill: rgba(255,255,255,.28); }
+  .wheel path:focus-visible { outline: none; stroke: var(--ink); }
+  .wheel path[data-on="1"] { stroke: #fff; }
 
   /* ─── The grid ───────────────────────────────────────────────────────── */
   .gal-grid { position: relative; width: 100%; }
   .shot {
     position: absolute; top: 0; left: 0; margin: 0; overflow: hidden;
-    border-radius: var(--radius-md); background: var(--card);
-    box-shadow: inset 0 0 0 1px rgba(145,132,217,.12);
+    border-radius: var(--radius-md); background: var(--face-sunk);
+    box-shadow: var(--raise-sm);
     cursor: pointer; padding: 0; border: 0;
-    transition: top .55s var(--card-ease), left .55s var(--card-ease),
-                opacity .35s ease, box-shadow .3s ease;
+    transition: top .6s var(--card-ease), left .6s var(--card-ease),
+                opacity .4s ease, box-shadow .35s var(--ease-soft);
   }
-  .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease, opacity .5s ease; }
-  .shot:hover { box-shadow: 0 0 0 1px rgba(145,132,217,.6), 0 16px 40px rgba(0,0,0,.55); z-index: 2; }
-  .shot:hover img { transform: scale(1.04); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease-soft); }
+  .shot:hover { box-shadow: var(--raise-md); z-index: 2; }
+  .shot:hover img { transform: scale(1.045); }
+  .shot:active { box-shadow: var(--press-sm); }
   .shot[data-out] { opacity: 0; pointer-events: none; }
-  .gal-empty { padding: var(--space-8) 0; color: var(--color-neutral-500); font-size: 14px; }
+  .gal-empty { padding: var(--space-8) 0; color: var(--muted); font-size: 14px; }
 
   /* ─── Full view ──────────────────────────────────────────────────────── */
   .viewer {
     position: fixed; inset: 0; z-index: 50;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(10, 11, 18, .93); opacity: 0; transition: opacity .3s ease;
+    background: color-mix(in oklab, var(--ground) 82%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1);
+    opacity: 0; transition: opacity .35s ease;
   }
   .viewer[data-on="1"] { opacity: 1; }
   .viewer[hidden] { display: none; }
@@ -388,93 +427,95 @@
 
   /* ─── The deck ──────────────────────────────────────────────────────────
      The photograph in front, its neighbours behind it and to either side,
-     dimmed and set back. Clicking one brings it forward; the deck slides,
-     it brightens, and the next one takes its place at the edge. */
+     faded and set back. Clicking one brings it forward; the deck slides,
+     it sharpens into colour, and the next one takes its place at the edge. */
   .deck { position: absolute; inset: 0; }
   .card {
     position: absolute; top: 50%; left: 50%;
     width: 56vw; height: 76dvh;
     display: flex; align-items: center; justify-content: center;
     padding: 0; border: 0; background: transparent; cursor: pointer;
-    transition: transform .55s var(--card-ease), opacity .45s ease, filter .55s ease;
+    transition: transform .6s var(--card-ease), opacity .5s ease, filter .6s ease;
     will-change: transform;
   }
-  .card img { box-shadow: 0 26px 70px rgba(0,0,0,.72); }
+  .card img { box-shadow: var(--raise-md); }
   .card[data-slot="0"] { cursor: zoom-in; }
-  .card[data-slot="0"] img { box-shadow: 0 30px 90px rgba(0,0,0,.8), 0 0 0 1px rgba(145,132,217,.28); }
+  .card[data-slot="0"] img { box-shadow: var(--raise-lg); }
   .viewer[data-zoomed="1"] .card[data-slot="0"] { cursor: grab; }
   .viewer[data-zoomed="1"] .card[data-slot="0"]:active { cursor: grabbing; }
   /* Zoomed in, the neighbours get out of the way. */
-  .viewer[data-zoomed="1"] .card:not([data-slot="0"]) { opacity: 0; pointer-events: none; }
+  .viewer[data-zoomed="1"] .card:not([data-slot="0"]) { opacity: 0 !important; pointer-events: none; }
 
   .v-zoom {
     position: absolute; left: 50%; bottom: 3.5dvh; transform: translateX(-50%);
     display: flex; align-items: center; gap: var(--space-2);
-    padding: 5px 7px; border-radius: var(--radius-md);
-    background: rgba(35,37,50,.82); border: 1px solid var(--rule);
+    padding: 6px; border-radius: var(--radius-pill);
+    background: var(--face); box-shadow: var(--raise-md);
   }
   .v-zoom button {
     display: flex; align-items: center; justify-content: center;
-    width: 34px; height: 34px; border-radius: var(--radius-sm);
-    background: transparent; border: 0; color: var(--color-neutral-300);
-    cursor: pointer; transition: background .3s ease, color .3s ease;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--face); border: 0; box-shadow: var(--raise-sm); color: var(--ink-2);
+    cursor: pointer; transition: color .3s ease, box-shadow .3s var(--ease-soft), opacity .3s ease;
   }
-  .v-zoom button:hover { background: rgba(145,132,217,.20); color: var(--color-accent-100); }
-  .v-zoom button:disabled { opacity: .3; cursor: default; }
-  .v-zoom button:disabled:hover { background: transparent; color: var(--color-neutral-300); }
+  .v-zoom button:hover { color: var(--accent); }
+  .v-zoom button:active { box-shadow: var(--press-sm); transition-duration: .12s; }
+  .v-zoom button:disabled { opacity: .4; cursor: default; box-shadow: none; }
+  .v-zoom button:disabled:hover { color: var(--ink-2); }
   .v-level {
-    min-width: 46px; text-align: center; font-size: 12px;
-    color: var(--color-neutral-400); font-variant-numeric: tabular-nums;
+    min-width: 58px; padding: 7px 0; text-align: center; font-size: 12px; font-weight: 500;
+    border-radius: var(--radius-pill); background: var(--ground); box-shadow: var(--press-sm);
+    color: var(--ink-2); font-variant-numeric: tabular-nums;
   }
   /* Named, not `.viewer button` — that would catch the cards too. */
   .viewer .v-close {
     position: absolute; display: flex; align-items: center; justify-content: center;
-    width: 46px; height: 46px; border-radius: var(--radius-md);
-    background: rgba(35,37,50,.7); border: 1px solid var(--rule);
-    color: var(--color-neutral-300); cursor: pointer;
-    transition: background .3s ease, color .3s ease, border-color .3s ease;
+    width: 48px; height: 48px; border-radius: 50%; border: 0;
+    background: var(--face); box-shadow: var(--raise-md);
+    color: var(--ink-2); cursor: pointer;
+    transition: color .3s ease, box-shadow .35s var(--ease-soft), transform .5s var(--card-ease);
   }
-  .viewer .v-close:hover {
-    background: rgba(145,132,217,.20); border-color: rgba(145,132,217,.55); color: var(--color-accent-100);
-  }
+  .viewer .v-close:hover { color: var(--accent); transform: rotate(90deg); }
+  .viewer .v-close:active { box-shadow: var(--press); transition-duration: .12s; }
   .viewer .v-close { top: 3dvh; right: 2vw; z-index: 4; }
 
   /* ─── Narrow viewports ───────────────────────────────────────────────── */
   @media (max-width: 860px) {
     :root {
-      --titlebar-top: 2vh; --panel-top: 10vh; --panel-left: 3vw;
-      --panel-w: 94vw; --panel-h: 80dvh;
+      --titlebar-top: 2vh; --panel-top: 12vh; --panel-left: 3vw;
+      --panel-w: 94vw; --panel-h: 85dvh;
       --ring: 290px;
     }
-    .page[data-room="gallery"] { --panel-top: 27vh; --panel-h: 67dvh; }
+    .page[data-room="gallery"] { --panel-top: 30vh; --panel-h: 67dvh; }
     .page[data-room="gallery"][data-mode="colour"] {
-      --titlebar-top: 9vh; --panel-top: 46vh; --panel-h: 48dvh;
+      --titlebar-top: 9vh; --panel-top: 48vh; --panel-h: 49dvh;
     }
     .card { width: 84vw; height: 62dvh; }
-    .home { grid-template-rows: auto auto auto; row-gap: var(--space-8); padding-bottom: var(--space-8); }
-    .hero { padding-top: 12vh; }
-    .rooms { grid-template-columns: 1fr; }
-    .room { border-left: none; border-top: 1px solid var(--rule); padding: 26px 24px; }
-    .room:first-child { border-top: none; }
+    .home { grid-template-rows: auto auto auto; row-gap: var(--space-4); padding-bottom: var(--space-8); }
+    .hero { padding: 13vh var(--space-6) var(--space-6); }
+    .rooms { grid-template-columns: 1fr; gap: 22px; padding: 0 18px; }
     .room:hover { transform: none; }
-    .panel { padding: 20px; }
-    .panel-title { font-size: 28px; }
-    .panel-head { height: 36px; }
-    .panel-close { width: 36px; height: 36px; }
-    .work-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+    .footer { padding-top: var(--space-8); }
+    .panel { padding: 18px 18px 0; }
+    .panel-body { margin: var(--space-2) -14px 0; padding: 12px 14px 24px; }
+    .panel-title { font-size: 30px; }
+    .panel-head { height: 40px; }
+    .panel-close { width: 40px; height: 40px; }
+    .work-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: 18px; }
     .work-meta { text-align: left; }
 
     .gal-controls { gap: var(--space-2); }
-    .seg button { padding: 6px 12px; font-size: 12px; }
-    .viewer .v-close { width: 40px; height: 40px; }
+    .seg button { min-width: 84px; padding: 7px 14px; font-size: 12px; }
+    .viewer .v-close { width: 42px; height: 42px; }
   }
 
   /* ─── Motion ─────────────────────────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-delay: 0s !important; }
+    :root { transition-duration: .01ms; }
     .cursor-glow, .room-glow { display: none; }
-    .page[data-open="true"] .hero-name { transform: none; }
-    .room:hover { transform: none; }
+    .page[data-open="true"] .hero { transform: none; }
+    .room:hover, .work-row:hover { transform: none; }
   }
   @media (pointer: coarse) {
     .cursor-glow, .room-glow { display: none; }
@@ -488,13 +529,15 @@
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
   <div class="top-bloom" aria-hidden="true"></div>
 
-  <button class="torch" id="torch" type="button" aria-pressed="true" title="Torch" aria-label="Turn the torch off">
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
-      <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
-      <path class="beam" d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
-    </svg>
+  <button class="torch" id="torch" type="button" role="switch" aria-checked="true" title="Torch" aria-label="Torch">
+    <span class="torch-knob">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
+        <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
+        <path class="beam" d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
+      </svg>
+    </span>
   </button>
 
   <div class="layer">
@@ -502,22 +545,35 @@
 
       <section class="hero">
         <h1 class="hero-name">MrDp</h1>
+        <p class="hero-sub">Maker, researcher, writer</p>
       </section>
 
       <section class="rooms">
         <button class="room" type="button" aria-expanded="false" aria-controls="panel"
                 data-room="gallery" data-kicker="Seen" data-label="Gallery">
           <span class="room-glow" aria-hidden="true"></span>
-          <span class="room-kicker">Seen</span>
-          <span class="room-name">Gallery</span>
-          <span class="room-line">A scrapbook, mostly shot at night.</span>
+          <span class="room-head">
+            <span class="room-name">Gallery</span>
+            <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"></path></svg>
+          </span>
+          <span class="room-well"><span class="room-line">A scrapbook, mostly shot at night.</span></span>
+          <span class="room-foot">
+            <span class="room-kicker">Seen</span>
+            <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
+          </span>
         </button>
         <button class="room" type="button" aria-expanded="false" aria-controls="panel"
                 data-room="work" data-kicker="Built" data-label="Work">
           <span class="room-glow" aria-hidden="true"></span>
-          <span class="room-kicker">Built</span>
-          <span class="room-name">Work</span>
-          <span class="room-line">Printers, boards, models, cuts.</span>
+          <span class="room-head">
+            <span class="room-name">Work</span>
+            <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"></path></svg>
+          </span>
+          <span class="room-well"><span class="room-line">Printers, boards, models, cuts.</span></span>
+          <span class="room-foot">
+            <span class="room-kicker">Built</span>
+            <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
+          </span>
         </button>
       </section>
 
@@ -544,7 +600,7 @@
   <div class="panel-titlebar" id="panelTitlebar" hidden>
     <div class="bar-inner">
 
-      <div class="wheel" id="wheel" hidden>
+      <div class="wheel" id="wheel">
         <div class="wheel-ring" aria-hidden="true"></div>
         <svg viewBox="0 0 100 100" id="wheelHit" role="group" aria-label="Filter by colour"></svg>
       </div>
@@ -555,6 +611,7 @@
 
         <div class="gal-controls" id="galControls" hidden>
           <div class="seg" role="tablist" aria-label="Arrange photographs by">
+            <span class="seg-thumb" aria-hidden="true"></span>
             <button type="button" role="tab" data-mode="time" aria-selected="true">Timeline</button>
             <button type="button" role="tab" data-mode="colour" aria-selected="false">Colour</button>
           </div>
@@ -579,7 +636,7 @@
     <div class="panel-body" id="panelBody">
 
       <section data-panel="work" hidden>
-        <article class="work-row">
+        <article class="work-row" style="--i:0">
           <p class="work-field">3D printing</p>
           <div>
             <h3 class="work-title">Ghost-tolerance jig set</h3>
@@ -587,7 +644,7 @@
           </div>
           <p class="work-meta">Fusion 360 &middot; PETG<br>2026</p>
         </article>
-        <article class="work-row">
+        <article class="work-row" style="--i:1">
           <p class="work-field">Electronics</p>
           <div>
             <h3 class="work-title">Low-light room sensor</h3>
@@ -595,7 +652,7 @@
           </div>
           <p class="work-meta">ESP32 &middot; KiCad<br>2025</p>
         </article>
-        <article class="work-row">
+        <article class="work-row" style="--i:2">
           <p class="work-field">AI</p>
           <div>
             <h3 class="work-title">Cutlist &mdash; a rough-cut assistant</h3>
@@ -603,7 +660,7 @@
           </div>
           <p class="work-meta">Whisper &middot; Python<br>2025</p>
         </article>
-        <article class="work-row">
+        <article class="work-row" style="--i:3">
           <p class="work-field">Video</p>
           <div>
             <h3 class="work-title">The one-light build series</h3>
@@ -611,7 +668,7 @@
           </div>
           <p class="work-meta">Resolve &middot; 8 films<br>2024&ndash;25</p>
         </article>
-        <article class="work-row">
+        <article class="work-row" style="--i:4">
           <p class="work-field">Economy</p>
           <div>
             <h3 class="work-title">Slow indicators</h3>
@@ -619,7 +676,7 @@
           </div>
           <p class="work-meta">Research &middot; Open data<br>Ongoing</p>
         </article>
-        <article class="work-row">
+        <article class="work-row" style="--i:5">
           <p class="work-field">Field notes</p>
           <div>
             <h3 class="work-title">Repair log, 140 entries</h3>
@@ -733,8 +790,7 @@
 
   function paintTorch() {
     page.dataset.torch = torchOn ? 'on' : 'off';
-    torch.setAttribute('aria-pressed', String(torchOn));
-    torch.setAttribute('aria-label', torchOn ? 'Turn the torch off' : 'Turn the torch on');
+    torch.setAttribute('aria-checked', String(torchOn));
   }
   paintTorch();
 
@@ -829,6 +885,8 @@
     panel.dataset.state = 'from';
     page.dataset.open = 'false';
     scrim.hidden = true;
+    // The environment eases back to its own colour as the card closes.
+    document.dispatchEvent(new CustomEvent('panel:close'));
 
     // The title flies back down into the card it came from.
     if (opener && !reduced.matches) bar.style.transform = flightTransform(opener);
@@ -843,9 +901,6 @@
       bar.style.transform = '';
       page.removeAttribute('data-room');
       document.getElementById('galControls').hidden = true;
-      panel.style.removeProperty('--edge');
-      panel.style.removeProperty('--edge-glow');
-      panel.style.removeProperty('--tint');
     }, reduced.matches ? 0 : 720);
   }
 
@@ -886,7 +941,7 @@
     cyan: '#45c0b8', blue: '#4a86e0', violet: '#8a6fd8', pink: '#d46fae',
     white: '#f2f2f5', grey: '#8b8f9e', black: '#17171c'
   };
-  var GAP = 14;
+  var GAP = 20;
 
   var segButtons = Array.prototype.slice.call(document.querySelectorAll('.seg [data-mode]'));
   var reverseBtn = document.getElementById('galReverse');
@@ -1075,56 +1130,59 @@
 
   }
 
-  /* The open card takes the picked colour — its edge, its glow and its own
-     ground — so the frame around the photographs agrees with what is in it. */
-  var PANEL_RGB = [47, 50, 72];   // --panel, the untinted ground
-  var TINT = 0.22;                // how far the ground moves toward the pick
+  /* Picking a colour re-tints the whole environment: the ground every
+     surface is made of leans toward the pick, and the accent becomes it.
+     Both are registered custom properties, so the stylesheet eases them
+     and every highlight, shade and gradient derived from them follows. */
+  var GROUND = [233, 234, 238];   // --ground, the untinted environment
+  var LEAN = { white: 0.5, grey: 0.24, black: 0.2 };   // the rest lean 0.3
+  // The accent is the swatch, except where it would vanish on a light ground.
+  var ACCENT = { yellow: '#c4a31a', white: '#9aa0ad', grey: '#6b7080', black: '#2b2d35' };
+  var themeColor = document.getElementById('themeColor');
+  var inGallery = false;
 
-  function paintEdge() {
-    var panel = document.getElementById('panel');
-    if (!picked) {
-      ['--edge', '--edge-glow', '--tint'].forEach(function (p) {
-        panel.style.removeProperty(p);
-      });
+  function hexRgb(hex) {
+    return [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
+  }
+  function rgbHex(rgb) {
+    return '#' + rgb.map(function (c) { return ('0' + c.toString(16)).slice(-2); }).join('');
+  }
+
+  function paintTheme() {
+    var root = document.documentElement;
+    if (!picked || !inGallery) {
+      root.style.removeProperty('--ground');
+      root.style.removeProperty('--accent');
+      themeColor.content = rgbHex(GROUND);
       return;
     }
-    var hex = SWATCH[picked];
-    var rgb = [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
-
-    // Black and the deeper greys would draw an edge indistinguishable from
-    // the ground, so lift the darkest swatches until the frame still reads.
-    var lum = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
-    var lift = lum < 80 ? (80 - lum) / 80 * 0.55 : 0;
-    var lifted = rgb.map(function (c) { return Math.round(c + (210 - c) * lift); });
-    var edge = lifted.join(',');
-
-    // The ground only leans toward the colour: the photographs and the type
-    // on top of it still have to hold.
-    var tint = PANEL_RGB.map(function (c, i) {
-      return Math.round(c + (lifted[i] - c) * TINT);
-    }).join(',');
-
-    panel.style.setProperty('--edge', 'rgba(' + edge + ',.75)');
-    panel.style.setProperty('--edge-glow', 'rgba(' + edge + ',.40)');
-    panel.style.setProperty('--tint', 'rgb(' + tint + ')');
+    var rgb = hexRgb(SWATCH[picked]);
+    var t = LEAN[picked] || 0.3;
+    var ground = rgbHex(GROUND.map(function (c, i) { return Math.round(c + (rgb[i] - c) * t); }));
+    root.style.setProperty('--ground', ground);
+    root.style.setProperty('--accent', ACCENT[picked] || SWATCH[picked]);
+    themeColor.content = ground;
   }
+
+  document.addEventListener('gallery:show', function () { inGallery = true; paintTheme(); });
+  document.addEventListener('panel:close', function () { inGallery = false; paintTheme(); });
 
   function pick(name) {
     picked = (picked === name) ? null : name;
     paintWheel();
-    paintEdge();
+    paintTheme();
     apply();
   }
 
   /* ── The deck ─────────────────────────────────────────────────────────
      No arrows: the neighbouring photographs are themselves cards, set back
-     and dimmed on either side. Click one and the deck slides — it comes
-     forward and brightens, the one in front slides off to the side, and a
+     and faded on either side. Click one and the deck slides — it comes
+     forward and fills with colour, the one in front slides off to the side, and a
      new card arrives at the far edge. */
   var SLOTS = [                       // by distance from the front card
-    { x: 0,    s: 1,    dim: 1,   z: 30 },
-    { x: 0.40, s: 0.80, dim: .42, z: 20 },
-    { x: 0.66, s: 0.64, dim: .22, z: 10 }
+    { x: 0,    s: 1,    fade: 1,   sat: 1,   z: 30 },
+    { x: 0.40, s: 0.80, fade: .62, sat: .45, z: 20 },
+    { x: 0.66, s: 0.64, fade: .30, sat: .2,  z: 10 }
   ];
   var REACH = SLOTS.length - 1;       // how far back the deck is drawn
   var cards = [];                     // one per photograph, in `shown` order
@@ -1222,8 +1280,8 @@
 
       card.style.transform = 'translate(calc(-50% + ' + x.toFixed(1) + 'px), -50%) scale(' +
                              (far ? SLOTS[REACH].s * 0.9 : slot.s).toFixed(3) + ')';
-      card.style.filter = 'brightness(' + (far ? 0 : slot.dim) + ')';
-      card.style.opacity = far ? '0' : '1';
+      card.style.filter = 'saturate(' + (far ? 0 : slot.sat) + ')';
+      card.style.opacity = far ? '0' : String(slot.fade);
       card.style.zIndex = far ? 0 : slot.z;
       card.style.pointerEvents = far ? 'none' : 'auto';
       card.dataset.slot = far ? 'far' : String(d);
@@ -1319,11 +1377,10 @@
       segButtons.forEach(function (b) {
         b.setAttribute('aria-selected', String(b === btn));
       });
-      wheelEl.hidden = mode !== 'colour';
       page.dataset.mode = mode;
       // Leaving Colour takes the wheel away, so it takes its filter too —
       // no hidden reason for photographs to be missing.
-      if (mode !== 'colour' && picked) { picked = null; paintWheel(); paintEdge(); }
+      if (mode !== 'colour' && picked) { picked = null; paintWheel(); paintTheme(); }
       apply();
     });
   });
