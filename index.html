@@ -6,7 +6,7 @@
 <title>MrDp — Maker, researcher, writer</title>
 <meta name="description" content="MrDp — a scrapbook of photographs, mostly shot at night, and the things behind them: printers, boards, models, cuts.">
 <meta name="theme-color" content="#e9eaee" id="themeColor">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%23e9eaee'/><circle cx='16' cy='16' r='8' fill='%23f7f8fa' stroke='%23c9ccd6'/><circle cx='16' cy='16' r='3.5' fill='%233b7cf2'/></svg>">
 
 <meta property="og:type" content="website">
@@ -19,6 +19,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_ds/soft/styles.css">
+<script>
+  /* The mode is set before the first paint, so a dark visit never flashes
+     light: a saved choice first, then the system's preference. */
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('mrdp-theme'); } catch (err) { /* private mode */ }
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
 
 <style>
   /* Everything below takes its colour, light and shade from the Soft tokens
@@ -26,30 +38,31 @@
      pressed. Picking a colour on the gallery wheel moves --ground and
      --accent, and the whole page re-tints with them. */
   :root {
-    /* How a card opens and closes: a short wind-up, a hard climb, then most
-       of the run spent easing onto its final size. Fitted to the drawn
-       speed-over-time curve; the monotonic fit is used over the marginally
-       closer one, which overshot the target size by 1% and sprang back. */
-    --card-ease: cubic-bezier(.46, .59, 0, 1);
+    /* Every movement on the page — the card opening, the title's flight,
+       the wheel's turn, a swipe settling — runs on the one heavy ease-out
+       from the design system: a snappy start and a long, zero-velocity stop. */
+    --card-ease: var(--ease-out-heavy);
 
     /* Open geometry of the expanding panel. The title sits in its own strip
-       above the panel, so --titlebar-top and --panel-top move together —
-       and in colour mode the strip has a ring around it to clear as well. */
+       above the panel, so the panel starts a fixed height below the strip —
+       measured in px, since the strip's contents are, and a vh gap let them
+       run into the panel on short screens. */
     --titlebar-top: 3vh;
-    --panel-top: 14vh;
+    --bar-h: 104px;       /* how tall the strip is: kicker and title */
     --panel-left: 4vw;
     --panel-w: 92vw;
-    --panel-h: 82vh;
-    --ring: 340px;        /* the colour ring's outer diameter */
-    --ring-hole: 76%;     /* of its radius — the clear middle */
+    --dial: 196px;        /* the colour dial's diameter */
+  }
+  /* Worked out on .page, not :root, so they see the section's own --bar-h. */
+  .page {
+    --panel-top: calc(var(--titlebar-top) + var(--bar-h));
+    --panel-h: calc(100dvh - var(--panel-top) - 3vh);
   }
 
-  /* Each section makes its own room: Work needs only a title above it, the
-     gallery also carries the tabs, and colour mode adds the ring. */
-  .page[data-room="gallery"] { --panel-top: 29vh; --panel-h: 67vh; }
-  .page[data-room="gallery"][data-mode="colour"] {
-    --titlebar-top: 11vh; --panel-top: 42vh; --panel-h: 54vh;
-  }
+  /* Each section makes its own room: Work needs only a title, the gallery
+     also carries its controls. The dial sits beside them in colour mode, no
+     taller than they are, so switching modes never moves the panel. */
+  .page[data-room="gallery"] { --bar-h: 240px; }
 
   html { scrollbar-color: var(--lo) transparent; scrollbar-width: thin; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -73,33 +86,47 @@
     margin: -210px 0 0 -210px; border-radius: 50%;
     pointer-events: none; z-index: 0; opacity: 0; transition: opacity .4s ease;
     background: radial-gradient(circle closest-side,
-      color-mix(in oklab, #fff 75%, transparent),
-      color-mix(in oklab, #fff 22%, transparent) 50%, transparent 72%);
+      color-mix(in oklab, var(--glow-src) 60%, transparent),
+      color-mix(in oklab, var(--glow-src) 18%, transparent) 50%, transparent 72%);
   }
+  :root[data-theme="dark"] .cursor-glow { mix-blend-mode: screen; }
   .page[data-torch="off"] .cursor-glow { opacity: 0 !important; }
   .layer { position: relative; z-index: 2; }
 
-  /* The torch — a switch, top right. The knob slides and carries the lamp. */
-  .torch {
+  /* The switches, top right: light or dark, and the torch. Each is a
+     pressed track with a raised knob that slides and carries its icon. */
+  .switches {
     position: fixed; top: 22px; right: 26px; z-index: 36;
-    width: 62px; height: 34px; padding: 0; border: 0; border-radius: var(--radius-pill);
-    background: var(--ground); box-shadow: var(--press); cursor: pointer;
-    transition: opacity .5s ease, background .5s ease;
+    display: flex; align-items: center; gap: 14px;
+    transition: opacity .5s ease;
   }
-  .torch-knob {
+  /* They stay up while a card is open — the mode can change mid-browse —
+     except on a narrow screen, where they would sit on the title. */
+  @media (max-width: 860px) {
+    .page[data-open="true"] .switches { opacity: 0; pointer-events: none; }
+  }
+  .switch {
+    position: relative; width: 62px; height: 34px; padding: 0; border: 0;
+    border-radius: var(--radius-pill); cursor: pointer;
+    background-color: var(--ground); box-shadow: var(--press);
+    transition: background-color .5s ease;
+  }
+  .switch-knob {
     position: absolute; top: 4px; left: 4px; width: 26px; height: 26px;
     display: flex; align-items: center; justify-content: center;
     border-radius: 50%; background: var(--face); box-shadow: var(--raise-sm);
     color: var(--faint);
-    transition: transform .5s var(--card-ease), color .4s ease;
+    transition: transform .55s var(--card-ease), color .4s ease;
   }
-  .torch[aria-checked="true"] {
-    background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 34%, var(--ground)), var(--ground));
-  }
-  .torch[aria-checked="true"] .torch-knob { transform: translateX(28px); color: var(--accent); }
+  .switch-knob svg { position: absolute; transition: opacity .4s ease, transform .55s var(--card-ease); }
+  .switch[aria-checked="true"] { background-color: color-mix(in oklab, var(--accent) 22%, var(--ground)); }
+  .switch[aria-checked="true"] .switch-knob { transform: translateX(28px); color: var(--accent); }
   .torch .beam { opacity: 0; transition: opacity .35s ease; }
   .torch[aria-checked="true"] .beam { opacity: 1; }
-  .page[data-open="true"] .torch { opacity: 0; pointer-events: none; }
+  /* The mode switch: the sun sets as the moon rises. */
+  .mode .moon { opacity: 0; transform: rotate(-60deg) scale(.6); }
+  .mode[aria-checked="true"] .sun  { opacity: 0; transform: rotate(60deg) scale(.6); }
+  .mode[aria-checked="true"] .moon { opacity: 1; transform: none; }
   @media (pointer: coarse) { .torch { display: none; } }
 
   /* ─── Home ───────────────────────────────────────────────────────────── */
@@ -234,9 +261,9 @@
   }
   .panel-titlebar[data-state="to"] { opacity: 1; transform: none; }
   .panel-titlebar[hidden] { display: none; }
-  /* An inline block so the ring can be centred on the stack rather than on
-     the viewport, while the strip itself keeps taking the flight transform. */
-  .bar-inner { position: relative; display: inline-block; }
+  /* A row: the title stack, and in colour mode the dial beside it. It is
+     an inline block, so the row stays centred as the dial's slot opens. */
+  .bar-inner { position: relative; display: inline-flex; align-items: center; }
   .bar-stack {
     position: relative; z-index: 2;
     display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
@@ -300,7 +327,7 @@
   /* ─── Gallery ──────────────────────────────────────────────────────────
      Two orders over the same photographs: when each was taken, and where
      its dominant colour falls on the wheel. Either can be reversed. */
-  /* The controls sit under the title, inside the ring when it is drawn. */
+  /* The controls sit under the title; in colour mode the dial is beside them. */
   .gal-controls {
     display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
     pointer-events: auto;
@@ -341,55 +368,86 @@
   .gal-reverse[data-dir="desc"] svg { transform: rotate(180deg); }
   .gal-count { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
 
-  /* ─── The colour wheel ──────────────────────────────────────────────────
-     In colour mode the wheel is drawn as a ring around the whole title
-     stack: the kicker, the name, the two tabs and the reverse control all
-     sit in the hole in the middle of it. It sits on a raised dial, with a
-     raised plateau in its middle, and turns into place as it appears. */
+  /* ─── The colour dial ───────────────────────────────────────────────────
+     In colour mode a dial opens beside the title. Its ring runs the rainbow,
+     then white, grey and black closing the circle back into red; it can be
+     dragged or spun round, and whichever colour comes to rest at the pointer
+     at the bottom is the one shown. Its middle names the pick; tapping the
+     middle shows every colour again. */
+  .dial-slot {
+    position: relative; width: 0; height: var(--dial); margin-left: 0;
+    pointer-events: none;
+    transition: width .9s var(--card-ease), margin-left .9s var(--card-ease);
+  }
+  .page[data-room="gallery"][data-mode="colour"] .dial-slot {
+    width: var(--dial); margin-left: 40px; pointer-events: auto;
+  }
   .wheel {
-    position: absolute; top: 50%; left: 50%;
-    width: var(--ring); height: var(--ring);
-    margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
-    pointer-events: none; opacity: 0; transform: scale(.55) rotate(-70deg);
-    transition: opacity .45s ease, transform .9s var(--card-ease);
+    position: absolute; top: 0; left: 0; width: var(--dial); height: var(--dial);
+    border-radius: 50%; touch-action: none;
+    opacity: 0; transform: scale(.4) rotate(-90deg);
+    transition: opacity .45s ease, transform 1s var(--card-ease);
   }
-  .page[data-room="gallery"][data-mode="colour"] .wheel {
-    pointer-events: auto; opacity: 1; transform: none;
+  .page[data-room="gallery"][data-mode="colour"] .wheel { opacity: 1; transform: none; }
+  /* The raised dial it sits on. */
+  .wheel::before {
+    content: ""; position: absolute; inset: -8px; border-radius: 50%;
+    background: var(--face); box-shadow: var(--raise-md); pointer-events: none;
   }
-  .wheel::before, .wheel::after {
-    content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+  /* The part that turns: the band and the wedges over it. */
+  .wheel-rot {
+    position: absolute; inset: 0; border-radius: 50%; cursor: grab;
+    transition: transform .9s var(--card-ease);
   }
-  .wheel::before { inset: -10px; background: var(--face); box-shadow: var(--raise-lg); z-index: 0; }
-  .wheel::after {
-    inset: calc(var(--ring) * .135); background: var(--face);
-    box-shadow: var(--raise-sm); z-index: 2;
-  }
-  /* The ring itself: the rainbow, then white, grey and black closing the
-     circle back into red — every neighbour blended into the next.
-     Each colour peaks at the CENTRE of its wedge, half a segment (16.36deg)
+  .wheel[data-dragging] .wheel-rot { cursor: grabbing; transition: none; }
+  /* Each colour peaks at the CENTRE of its wedge, half a segment (16.36deg)
      past the wedge's leading edge, so the band and the selectable wedge
      over it line up. The stop at 0/360 is the black-to-red midpoint. */
   .wheel-ring {
-    position: absolute; inset: 0; z-index: 1; border-radius: 50%;
+    position: absolute; inset: 0; border-radius: 50%;
     background: conic-gradient(from 0deg,
       #7b332b 0deg, #e0503a 16.36deg, #e08b3a 49.09deg, #e0c93a 81.82deg,
       #6fbf50 114.55deg, #45c0b8 147.27deg, #4a86e0 180deg, #8a6fd8 212.73deg,
       #d46fae 245.45deg, #f2f2f5 278.18deg, #8b8f9e 310.91deg, #17171c 343.64deg,
       #7b332b 360deg);
-    /* The hole is --ring-hole of the radius, sized to clear the stack. */
-    -webkit-mask: radial-gradient(closest-side, transparent var(--ring-hole), #000 calc(var(--ring-hole) + 1%));
-    mask: radial-gradient(closest-side, transparent var(--ring-hole), #000 calc(var(--ring-hole) + 1%));
+    -webkit-mask: radial-gradient(closest-side, transparent 71%, #000 72%);
+    mask: radial-gradient(closest-side, transparent 71%, #000 72%);
     transition: opacity .5s ease, filter .5s ease;
   }
-  .wheel[data-picked] .wheel-ring { opacity: .35; filter: saturate(.6); }
-  .wheel svg { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; }
+  .wheel[data-picked] .wheel-ring { opacity: .45; filter: saturate(.55); }
+  .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .wheel path {
-    cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 1.2;
-    transition: fill .35s ease, stroke .35s ease;
+    fill: transparent; stroke: transparent; stroke-width: 1;
+    transition: fill .4s ease, stroke .4s ease;
   }
-  .wheel path:hover { fill: rgba(255,255,255,.28); }
-  .wheel path:focus-visible { outline: none; stroke: var(--ink); }
+  .wheel path:hover { fill: rgba(255,255,255,.26); }
   .wheel path[data-on="1"] { stroke: #fff; }
+  .wheel path[data-empty] { cursor: default; }
+  /* The raised middle: it names what is shown, and tapping it shows all. */
+  .wheel-core {
+    position: absolute; inset: 17%; border-radius: 50%; border: 0; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: var(--face); box-shadow: var(--raise-sm); cursor: pointer;
+    transition: box-shadow .35s var(--ease-soft);
+  }
+  .wheel-core:active { box-shadow: var(--press); transition-duration: .12s; }
+  .core-dot {
+    width: 10px; height: 10px; border-radius: 50%; margin-bottom: 4px;
+    background: conic-gradient(#e0503a, #e0c93a, #6fbf50, #45c0b8, #4a86e0, #d46fae, #e0503a);
+    box-shadow: 0 0 0 2px var(--ground);
+    transition: background .5s ease, transform .6s var(--card-ease);
+  }
+  .core-name { font-size: 15px; font-weight: 600; color: var(--ink); text-transform: capitalize; }
+  .core-count { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  /* The pointer at the bottom: the colour resting over it is the pick. */
+  .wheel-pointer {
+    position: absolute; left: 50%; bottom: -17px; width: 14px; height: 10px;
+    margin-left: -7px; background: var(--ink-2); pointer-events: none;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    transition: background .4s ease, transform .5s var(--card-ease);
+  }
+  .wheel[data-picked] .wheel-pointer { background: var(--accent); transform: translateY(-2px); }
+  .wheel:focus-visible { outline-offset: 10px; }
 
   /* ─── The grid ───────────────────────────────────────────────────────── */
   .gal-grid { position: relative; width: 100%; }
@@ -429,7 +487,10 @@
      The photograph in front, its neighbours behind it and to either side,
      faded and set back. Clicking one brings it forward; the deck slides,
      it sharpens into colour, and the next one takes its place at the edge. */
-  .deck { position: absolute; inset: 0; }
+  .deck { position: absolute; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .deck img { -webkit-user-drag: none; }
+  /* Under the finger the deck follows exactly; it eases only once let go. */
+  .viewer[data-swiping] .card { transition: none; }
   .card {
     position: absolute; top: 50%; left: 50%;
     width: 56vw; height: 76dvh;
@@ -482,14 +543,13 @@
   /* ─── Narrow viewports ───────────────────────────────────────────────── */
   @media (max-width: 860px) {
     :root {
-      --titlebar-top: 2vh; --panel-top: 12vh; --panel-left: 3vw;
-      --panel-w: 94vw; --panel-h: 85dvh;
-      --ring: 290px;
+      --titlebar-top: 2vh; --panel-left: 3vw; --panel-w: 94vw;
+      --bar-h: 92px; --dial: 142px;
     }
-    .page[data-room="gallery"] { --panel-top: 30vh; --panel-h: 67dvh; }
-    .page[data-room="gallery"][data-mode="colour"] {
-      --titlebar-top: 9vh; --panel-top: 48vh; --panel-h: 49dvh;
-    }
+    .page[data-room="gallery"] { --bar-h: 214px; }
+    .page[data-room="gallery"][data-mode="colour"] .dial-slot { margin-left: 22px; }
+    .core-name { font-size: 13px; }
+    .core-dot { margin-bottom: 2px; }
     .card { width: 84vw; height: 62dvh; }
     .home { grid-template-rows: auto auto auto; row-gap: var(--space-4); padding-bottom: var(--space-8); }
     .hero { padding: 13vh var(--space-6) var(--space-6); }
@@ -529,16 +589,31 @@
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
   <div class="top-bloom" aria-hidden="true"></div>
 
-  <button class="torch" id="torch" type="button" role="switch" aria-checked="true" title="Torch" aria-label="Torch">
-    <span class="torch-knob">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
-        <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
-        <path class="beam" d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
-      </svg>
-    </span>
-  </button>
+  <div class="switches">
+    <button class="switch mode" id="modeSwitch" type="button" role="switch" aria-checked="false" title="Dark mode" aria-label="Dark mode">
+      <span class="switch-knob">
+        <svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"></path>
+        </svg>
+        <svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>
+        </svg>
+      </span>
+    </button>
+    <button class="switch torch" id="torch" type="button" role="switch" aria-checked="true" title="Torch" aria-label="Torch">
+      <span class="switch-knob">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8.4 7.6h7.2l-1.6 3.1H10z"></path>
+          <rect x="10" y="10.7" width="4" height="10.6" rx="1.2"></rect>
+          <path class="beam" d="M12 4.6V2.8M8.2 5.6 7.1 4.2M15.8 5.6l1.1-1.4"></path>
+        </svg>
+      </span>
+    </button>
+  </div>
 
   <div class="layer">
     <main class="home">
@@ -599,12 +674,6 @@
 
   <div class="panel-titlebar" id="panelTitlebar" hidden>
     <div class="bar-inner">
-
-      <div class="wheel" id="wheel">
-        <div class="wheel-ring" aria-hidden="true"></div>
-        <svg viewBox="0 0 100 100" id="wheelHit" role="group" aria-label="Filter by colour"></svg>
-      </div>
-
       <div class="bar-stack">
         <p class="panel-kicker" id="panelKicker"></p>
         <h2 class="panel-title"><span id="panelTitle"></span></h2>
@@ -620,6 +689,23 @@
             <span id="galDir">Oldest first</span>
           </button>
           <p class="gal-count" id="galCount"></p>
+        </div>
+      </div>
+
+
+      <div class="dial-slot">
+        <div class="wheel" id="wheel" tabindex="0" role="slider" aria-label="Colour"
+             aria-valuemin="0" aria-valuemax="10" aria-valuetext="All colours">
+          <div class="wheel-rot" id="wheelRot">
+            <div class="wheel-ring" aria-hidden="true"></div>
+            <svg viewBox="0 0 100 100" id="wheelHit" aria-hidden="true"></svg>
+          </div>
+          <button class="wheel-core" id="wheelCore" type="button" tabindex="-1" aria-label="Show every colour">
+            <span class="core-dot" id="coreDot"></span>
+            <span class="core-name" id="coreName">All</span>
+            <span class="core-count" id="coreCount"></span>
+          </button>
+          <span class="wheel-pointer" aria-hidden="true"></span>
         </div>
       </div>
 
@@ -793,6 +879,24 @@
     torch.setAttribute('aria-checked', String(torchOn));
   }
   paintTorch();
+
+  /* ── Light or dark ──────────────────────────────────────────────────────
+     The mode was set before the first paint; the switch flips it, and the
+     registered colours in the stylesheet ease the whole page across. */
+  var modeSwitch = document.getElementById('modeSwitch');
+  var root = document.documentElement;
+
+  function paintMode() {
+    modeSwitch.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  }
+  modeSwitch.addEventListener('click', function () {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    paintMode();
+    try { localStorage.setItem('mrdp-theme', root.dataset.theme); } catch (err) { /* ignore */ }
+    // The gallery's colour pick is mixed from the mode's own ground.
+    document.dispatchEvent(new CustomEvent('theme:change'));
+  });
+  paintMode();
 
   /* ── Per-card glow ──────────────────────────────────────────────────── */
   rooms.forEach(function (room) {
@@ -1069,7 +1173,7 @@
 
     shown.forEach(function (p, i) {
       window.setTimeout(function () {
-        p.el.style.transition = 'transform .62s cubic-bezier(.2,.75,.25,1), opacity .45s ease';
+        p.el.style.transition = 'transform .7s var(--ease-out-heavy), opacity .45s ease';
         p.el.style.transform = '';
         p.el.style.opacity = '';
       }, i * 11);
@@ -1082,11 +1186,24 @@
     }, shown.length * 11 + 750);
   }
 
-  /* ── The wheel ───────────────────────────────────────────────────────── */
-  function wedgePath(i, n) {
-    var r0 = 38, r1 = 50, out = [];
-    var a0 = (i * 360 / n - 90) * Math.PI / 180;
-    var a1 = ((i + 1) * 360 / n - 90) * Math.PI / 180;
+  /* ── The dial ────────────────────────────────────────────────────────
+     Eleven wedges on a ring that turns. Whichever wedge comes to rest over
+     the pointer at the bottom is the pick: drag it round, flick it and let
+     it coast, scroll over it, use the arrow keys, or tap a wedge to bring it
+     down. `turn` is the ring's rotation in degrees and is never wrapped, so
+     it always takes the short way round to the next stop. */
+  var N = WHEEL.length, SEG = 360 / N;
+  var wheelRot  = document.getElementById('wheelRot');
+  var coreName  = document.getElementById('coreName');
+  var coreCount = document.getElementById('coreCount');
+  var coreDot   = document.getElementById('coreDot');
+  var counts = {};
+  var turn = 0;
+
+  function wedgePath(i) {
+    var r0 = 36, r1 = 50, out = [];
+    var a0 = (i * SEG - 90) * Math.PI / 180;
+    var a1 = ((i + 1) * SEG - 90) * Math.PI / 180;
     function pt(r, a) {
       return (50 + r * Math.cos(a)).toFixed(2) + ' ' + (50 + r * Math.sin(a)).toFixed(2);
     }
@@ -1096,25 +1213,40 @@
   }
 
   function buildWheel() {
-    var counts = {};
     photos.forEach(function (p) { counts[p.colour] = (counts[p.colour] || 0) + 1; });
-
     WHEEL.forEach(function (name, i) {
       var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      var n = counts[name] || 0;
-      path.setAttribute('d', wedgePath(i, WHEEL.length));
+      path.setAttribute('d', wedgePath(i));
       path.setAttribute('data-colour', name);
-      path.setAttribute('role', 'button');
-      path.setAttribute('tabindex', '0');
-      path.setAttribute('aria-label', name + ', ' + n + ' photograph' + (n === 1 ? '' : 's'));
-      if (!n) path.style.cursor = 'default';
-      path.addEventListener('click', function () { if (n) pick(name); });
-      path.addEventListener('keydown', function (e) {
-        if (n && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(name); }
-      });
+      if (!counts[name]) path.setAttribute('data-empty', '');
       wheelHit.appendChild(path);
     });
     paintWheel();
+  }
+
+  /* Wedge i is centred (i + ½) segments clockwise from the top; the pointer
+     is at 180°. These convert between the two. */
+  function atBottom(t) {
+    return (((Math.round((180 - t) / SEG - 0.5)) % N) + N) % N;
+  }
+  function turnFor(i, near) {
+    var t = 180 - (i + 0.5) * SEG;
+    return t + 360 * Math.round((near - t) / 360);
+  }
+  // The nearest wedge that has photographs in it, from i outward.
+  function nearestFull(i) {
+    for (var k = 0; k < N; k++) {
+      var a = (i + k) % N, b = ((i - k) % N + N) % N;
+      if (counts[WHEEL[a]]) return a;
+      if (counts[WHEEL[b]]) return b;
+    }
+    return i;
+  }
+
+  function spin(t, animate) {
+    turn = t;
+    wheelRot.style.transition = animate === false ? 'none' : '';
+    wheelRot.style.transform = 'rotate(' + t.toFixed(2) + 'deg)';
   }
 
   function paintWheel() {
@@ -1125,19 +1257,27 @@
       var on = path.getAttribute('data-colour') === picked;
       path.setAttribute('data-on', on ? '1' : '0');
       path.style.fill = on ? SWATCH[picked] : '';
-      path.style.fillOpacity = on ? '1' : '';
     });
 
+    var n = picked ? counts[picked] : photos.length;
+    coreName.textContent = picked || 'All';
+    coreCount.textContent = n + (n === 1 ? ' photo' : ' photos');
+    coreDot.style.background = picked ? SWATCH[picked] : '';
+    wheelEl.setAttribute('aria-valuenow', picked ? String(WHEEL.indexOf(picked)) : '0');
+    wheelEl.setAttribute('aria-valuetext', picked ? picked : 'All colours');
   }
 
   /* Picking a colour re-tints the whole environment: the ground every
      surface is made of leans toward the pick, and the accent becomes it.
      Both are registered custom properties, so the stylesheet eases them
-     and every highlight, shade and gradient derived from them follows. */
-  var GROUND = [233, 234, 238];   // --ground, the untinted environment
-  var LEAN = { white: 0.5, grey: 0.24, black: 0.2 };   // the rest lean 0.3
-  // The accent is the swatch, except where it would vanish on a light ground.
-  var ACCENT = { yellow: '#c4a31a', white: '#9aa0ad', grey: '#6b7080', black: '#2b2d35' };
+     and every highlight, shade and gradient derived from them follows.
+     Light and dark each lean from their own ground. */
+  var MODES = {
+    light: { ground: [233, 234, 238], lean: { white: 0.5, grey: 0.24, black: 0.2 }, by: 0.3,
+             accent: { yellow: '#c4a31a', white: '#9aa0ad', grey: '#6b7080', black: '#2b2d35' } },
+    dark:  { ground: [37, 39, 47],    lean: { white: 0.14, grey: 0.12, black: 0.35 }, by: 0.2,
+             accent: { white: '#e4e6ec', grey: '#a3a8b5', black: '#8b8f9e' } }
+  };
   var themeColor = document.getElementById('themeColor');
   var inGallery = false;
 
@@ -1150,46 +1290,153 @@
 
   function paintTheme() {
     var root = document.documentElement;
+    var m = MODES[root.dataset.theme] || MODES.light;
     if (!picked || !inGallery) {
       root.style.removeProperty('--ground');
       root.style.removeProperty('--accent');
-      themeColor.content = rgbHex(GROUND);
+      themeColor.content = rgbHex(m.ground);
       return;
     }
     var rgb = hexRgb(SWATCH[picked]);
-    var t = LEAN[picked] || 0.3;
-    var ground = rgbHex(GROUND.map(function (c, i) { return Math.round(c + (rgb[i] - c) * t); }));
+    var t = m.lean[picked] || m.by;
+    var ground = rgbHex(m.ground.map(function (c, i) { return Math.round(c + (rgb[i] - c) * t); }));
     root.style.setProperty('--ground', ground);
-    root.style.setProperty('--accent', ACCENT[picked] || SWATCH[picked]);
+    root.style.setProperty('--accent', m.accent[picked] || SWATCH[picked]);
     themeColor.content = ground;
   }
 
   document.addEventListener('gallery:show', function () { inGallery = true; paintTheme(); });
   document.addEventListener('panel:close', function () { inGallery = false; paintTheme(); });
+  document.addEventListener('theme:change', paintTheme);
 
-  function pick(name) {
-    picked = (picked === name) ? null : name;
+  function setPicked(name) {
+    if (name === picked) return;
+    picked = name;
     paintWheel();
     paintTheme();
     apply();
   }
 
+  // Bring wedge i to the pointer and show it.
+  function pickIndex(i, from) {
+    i = nearestFull(i);
+    spin(turnFor(i, from === undefined ? turn : from));
+    setPicked(WHEEL[i]);
+  }
+
+  function stepPick(by) {
+    var i = picked ? WHEEL.indexOf(picked) : atBottom(turn);
+    if (picked || by === 0) i = (i + by + N) % N;
+    for (var k = 0; k < N && !counts[WHEEL[i]]; k++) i = (i + (by || 1) + N) % N;
+    pickIndex(i);
+  }
+
+  /* Dragging. The ring follows the pointer's angle round the centre; the
+     pick follows whichever wedge is passing the pointer, so the photographs
+     and the page change colour as it turns. On release it coasts on the
+     speed it was let go at, then settles on the nearest wedge. A press
+     that never moved is a tap on a wedge. */
+  var twist = null;
+
+  function angleAt(e) {
+    var r = wheelEl.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+  }
+
+  wheelRot.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    twist = { id: e.pointerId, a: angleAt(e), moved: 0, target: e.target,
+             samples: [{ t: performance.now(), turn: turn }] };
+    wheelRot.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  wheelRot.addEventListener('pointermove', function (e) {
+    if (!twist || e.pointerId !== twist.id) return;
+    var a = angleAt(e);
+    var d = a - twist.a;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    twist.a = a;
+    twist.moved += Math.abs(d);
+    if (twist.moved < 4) return;
+
+    wheelEl.setAttribute('data-dragging', '');
+    spin(turn + d, false);
+    var now = performance.now();
+    twist.samples.push({ t: now, turn: turn });
+    while (twist.samples.length > 2 && now - twist.samples[0].t > 90) twist.samples.shift();
+
+    var i = atBottom(turn);
+    if (counts[WHEEL[i]]) setPicked(WHEEL[i]);
+  });
+
+  function endDrag(e) {
+    if (!twist || e.pointerId !== twist.id) return;
+    var d = twist;
+    twist = null;
+    wheelEl.removeAttribute('data-dragging');
+
+    if (d.moved < 4) {
+      // A tap: bring that wedge down, or let go of it if it is the pick.
+      var name = d.target && d.target.getAttribute && d.target.getAttribute('data-colour');
+      if (!name || !counts[name]) return;
+      if (name === picked) { setPicked(null); return; }
+      pickIndex(WHEEL.indexOf(name));
+      return;
+    }
+
+    // A flick: carry on for a while at the release speed, then settle.
+    var s0 = d.samples[0], s1 = d.samples[d.samples.length - 1];
+    var v = s1.t > s0.t ? (s1.turn - s0.turn) / (s1.t - s0.t) : 0;   // deg per ms
+    var coast = Math.max(-540, Math.min(540, v * 260));
+    var rest = turn + coast;
+    pickIndex(atBottom(rest), rest);
+  }
+  wheelRot.addEventListener('pointerup', endDrag);
+  wheelRot.addEventListener('pointercancel', endDrag);
+
+  // Tapping the middle shows every colour again.
+  document.getElementById('wheelCore').addEventListener('click', function () { setPicked(null); });
+
+  // A scroll over the dial turns it a wedge at a time.
+  var wheelAcc = 0, wheelLock = 0;
+  wheelEl.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var now = performance.now();
+    wheelAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (now < wheelLock || Math.abs(wheelAcc) < 40) return;
+    stepPick(wheelAcc > 0 ? 1 : -1);
+    wheelAcc = 0;
+    wheelLock = now + 140;
+  }, { passive: false });
+
+  wheelEl.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); stepPick(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); stepPick(-1); }
+    if (e.key === 'Escape' && picked) { e.preventDefault(); e.stopPropagation(); setPicked(null); }
+  });
+
   /* ── The deck ─────────────────────────────────────────────────────────
      No arrows: the neighbouring photographs are themselves cards, set back
-     and faded on either side. Click one and the deck slides — it comes
-     forward and fills with colour, the one in front slides off to the side, and a
-     new card arrives at the far edge. */
+     and faded on either side. Click one, or swipe, and the deck slides — it
+     comes forward and fills with colour, the one in front slides off to the
+     side, and a new card arrives at the far edge. A swipe drags the whole
+     deck under the finger, so every card is somewhere between two slots. */
   var SLOTS = [                       // by distance from the front card
     { x: 0,    s: 1,    fade: 1,   sat: 1,   z: 30 },
     { x: 0.40, s: 0.80, fade: .62, sat: .45, z: 20 },
-    { x: 0.66, s: 0.64, fade: .30, sat: .2,  z: 10 }
+    { x: 0.66, s: 0.64, fade: .30, sat: .2,  z: 10 },
+    { x: 0.82, s: 0.58, fade: 0,   sat: 0,   z: 0 }    // off the edge
   ];
-  var REACH = SLOTS.length - 1;       // how far back the deck is drawn
+  var REACH = SLOTS.length - 2;       // how far back the deck is drawn
   var cards = [];                     // one per photograph, in `shown` order
 
   var MIN_Z = 1, MAX_Z = 6;
   var zoom = 1, panX = 0, panY = 0;
-  var drag = null;
+  var drag = null;     // panning a zoomed photograph
+  var swipe = null;    // dragging the deck sideways
+  var swallowClick = false;
 
   function frontImg() {
     var c = cards[at];
@@ -1253,6 +1500,7 @@
       var img = new Image();
       img.alt = '';
       img.decoding = 'async';
+      img.draggable = false;
       card.appendChild(img);
       card.addEventListener('click', function (e) {
         var d = i - at;
@@ -1268,28 +1516,36 @@
     });
   }
 
-  /* Place every card by its distance from the front one. */
-  function paintDeck() {
-    var w = viewer.clientWidth || window.innerWidth;
-    cards.forEach(function (card, i) {
-      var d = i - at;
-      var far = Math.abs(d) > REACH;
-      var slot = SLOTS[Math.min(Math.abs(d), REACH)];
-      var sign = d < 0 ? -1 : 1;
-      var x = (far ? SLOTS[REACH].x + 0.16 : slot.x) * w * sign;
+  /* Place every card by its distance from the front one. `shift` is how
+     far the deck has been dragged, in slots — a card half-way between two
+     slots takes the in-between of their place, size, fade and colour. */
+  function lerp(a, b, t) { return a + (b - a) * t; }
 
-      card.style.transform = 'translate(calc(-50% + ' + x.toFixed(1) + 'px), -50%) scale(' +
-                             (far ? SLOTS[REACH].s * 0.9 : slot.s).toFixed(3) + ')';
-      card.style.filter = 'saturate(' + (far ? 0 : slot.sat) + ')';
-      card.style.opacity = far ? '0' : String(slot.fade);
-      card.style.zIndex = far ? 0 : slot.z;
+  function paintDeck(shift) {
+    var w = viewer.clientWidth || window.innerWidth;
+    var last = SLOTS.length - 1;
+    cards.forEach(function (card, i) {
+      var d = i - at + (shift || 0);
+      var ad = Math.min(Math.abs(d), last);
+      var k = Math.min(Math.floor(ad), last - 1), t = ad - k;
+      var A = SLOTS[k], B = SLOTS[k + 1];
+      var sign = d < 0 ? -1 : 1;
+      var far = ad > REACH + 0.5;
+
+      card.style.transform = 'translate(calc(-50% + ' + (lerp(A.x, B.x, t) * w * sign).toFixed(1) + 'px), -50%) scale(' +
+                             lerp(A.s, B.s, t).toFixed(3) + ')';
+      card.style.filter = 'saturate(' + lerp(A.sat, B.sat, t).toFixed(3) + ')';
+      card.style.opacity = lerp(A.fade, B.fade, t).toFixed(3);
+      card.style.zIndex = Math.round(lerp(A.z, B.z, t));
       card.style.pointerEvents = far ? 'none' : 'auto';
-      card.dataset.slot = far ? 'far' : String(d);
+      var r = Math.round(d);
+      card.dataset.slot = Math.abs(r) > REACH ? 'far' : String(r);
 
       // Only the cards in play carry an image; the front pair get the big
       // copy so stepping across is instant, the rest make do with a thumb.
       var img = card.firstChild;
-      var want = Math.abs(d) <= 1 ? 'full' : (Math.abs(d) <= REACH + 1 ? 'thumb' : null);
+      var n = Math.abs(i - at);
+      var want = n <= 1 ? 'full' : (n <= REACH + 1 ? 'thumb' : null);
       if (want && img.dataset.tier !== 'full' && img.dataset.tier !== want) {
         img.src = want === 'full' ? fullSrc(shown[i]) : thumbSrc(shown[i]);
         img.dataset.tier = want;
@@ -1335,29 +1591,93 @@
     if ((e.target === viewer || e.target === deck) && zoom === 1) closeViewer();
   });
 
+  // A sideways trackpad swipe steps through; anything else zooms.
+  var sideAcc = 0, sideLock = 0;
   viewer.addEventListener('wheel', function (e) {
     e.preventDefault();
+    if (zoom <= 1.01 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      var now = performance.now();
+      sideAcc += e.deltaX;
+      if (now > sideLock && Math.abs(sideAcc) > 50) {
+        step(sideAcc > 0 ? 1 : -1);
+        sideAcc = 0;
+        sideLock = now + 450;    // one swipe, one photograph
+      }
+      return;
+    }
     setZoom(zoom * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
   }, { passive: false });
 
+  // How far one slot is on screen — a drag of this much moves the deck one.
+  function slotWidth() { return SLOTS[1].x * (viewer.clientWidth || window.innerWidth); }
+
   deck.addEventListener('pointerdown', function (e) {
-    if (zoom <= 1.01) return;
-    var img = frontImg();
-    if (!img || !img.contains(e.target)) return;
-    drag = { x: e.clientX, y: e.clientY, px: panX, py: panY, id: e.pointerId };
-    deck.setPointerCapture(e.pointerId);
-    e.preventDefault();
+    if (e.button !== 0) return;
+    if (zoom > 1.01) {
+      var img = frontImg();
+      if (!img || !img.contains(e.target)) return;
+      drag = { x: e.clientX, y: e.clientY, px: panX, py: panY, id: e.pointerId };
+      deck.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      return;
+    }
+    swipe = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false,
+              samples: [{ t: performance.now(), x: e.clientX }] };
   });
+
   deck.addEventListener('pointermove', function (e) {
-    if (!drag) return;
-    panX = drag.px + (e.clientX - drag.x);
-    panY = drag.py + (e.clientY - drag.y);
-    clampPan();
-    paintZoom();
+    if (drag) {
+      panX = drag.px + (e.clientX - drag.x);
+      panY = drag.py + (e.clientY - drag.y);
+      clampPan();
+      paintZoom();
+      return;
+    }
+    if (!swipe || e.pointerId !== swipe.id) return;
+    var dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (!swipe.on) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+      swipe.on = true;
+      deck.setPointerCapture(e.pointerId);
+      viewer.setAttribute('data-swiping', '');
+    }
+    // Past either end the deck gives, but only grudgingly.
+    if ((at === 0 && dx > 0) || (at === cards.length - 1 && dx < 0)) dx *= 0.3;
+    var now = performance.now();
+    swipe.samples.push({ t: now, x: e.clientX });
+    while (swipe.samples.length > 2 && now - swipe.samples[0].t > 90) swipe.samples.shift();
+    paintDeck(dx / slotWidth());
   });
-  ['pointerup', 'pointercancel'].forEach(function (ev) {
-    deck.addEventListener(ev, function () { drag = null; });
-  });
+
+  function endSwipe(e) {
+    drag = null;
+    if (!swipe || e.pointerId !== swipe.id) return;
+    var s = swipe;
+    swipe = null;
+    if (!s.on) return;
+
+    viewer.removeAttribute('data-swiping');
+    swallowClick = true;         // the click after a drag is not a tap
+    setTimeout(function () { swallowClick = false; }, 0);
+    var dx = e.clientX - s.x;
+    var s0 = s.samples[0], s1 = s.samples[s.samples.length - 1];
+    var v = s1.t > s0.t ? (s1.x - s0.x) / (s1.t - s0.t) : 0;    // px per ms
+    // Far enough, or flicked: go. Hard flicks can carry two photographs.
+    var slots = Math.round(-(dx + v * 220) / slotWidth());
+    if (!slots && (Math.abs(dx) > slotWidth() * 0.18 || Math.abs(v) > 0.4)) slots = dx < 0 ? 1 : -1;
+    slots = Math.max(-2, Math.min(2, slots));
+    // Hand the cards back to their transition from wherever the finger left them.
+    if (slots) goTo(at + slots); else paintDeck(0);
+  }
+  deck.addEventListener('pointerup', endSwipe);
+  deck.addEventListener('pointercancel', endSwipe);
+
+  viewer.addEventListener('click', function (e) {
+    if (!swallowClick) return;
+    swallowClick = false;
+    e.stopPropagation();
+    e.preventDefault();
+  }, true);
   window.addEventListener('resize', function () { if (!viewer.hidden) paintDeck(); });
 
   document.addEventListener('keydown', function (e) {
@@ -1380,7 +1700,7 @@
       page.dataset.mode = mode;
       // Leaving Colour takes the wheel away, so it takes its filter too —
       // no hidden reason for photographs to be missing.
-      if (mode !== 'colour' && picked) { picked = null; paintWheel(); paintTheme(); }
+      if (mode !== 'colour' && picked) setPicked(null);
       apply();
     });
   });

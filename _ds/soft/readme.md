@@ -6,6 +6,13 @@ every card, button and field is made of the ground itself, either **raised**
 into it (the same pair turned inward). Contrast comes from light and shade, not
 from fills.
 
+## Light and dark
+
+`:root[data-theme="dark"]` swaps the ground and the colours the rest are mixed
+from (`--hi-src`, `--lo-src`, the ink sources, `--glow-src`). All of them are
+registered, so changing modes eases the whole page across rather than
+snapping. Set the mode before the first paint to avoid a flash.
+
 ## Tokens
 
 - `--ground` and `--accent` are the only two colours set by hand. Both are
@@ -20,8 +27,10 @@ from fills.
   Raised things press in on `:active`.
 - Radii: `--radius-sm` 10, `-md` 16, `-lg` 24, `-xl` 30, `-pill`.
 - Spacing: `--space-1…8`, on a 4px base.
-- Motion: `--ease-soft` for state changes, and `--retint` for how long the
-  environment takes to change colour.
+- Motion: `--ease-out-heavy` is `cubic-bezier(.1, .9, .2, 1)`, a heavy
+  ease-out that starts fast and settles slowly with no bounce. It is the curve
+  for everything that moves; `--ease-soft` is the same curve under a second name.
+  `--retint` is how long a re-tint or a change of mode takes.
 
 ## Rules
 
